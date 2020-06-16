@@ -7,6 +7,8 @@
  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝                                               
 */
 
+#define USE_ETHERNET
+
 #define TESTING // buttons light their LED when pressed
 
 // card addresses
@@ -37,6 +39,23 @@
 #include "debug.h"
 #endif
 
+
+
+#ifdef USE_ETHERNET
+
+#include <SPI.h>        
+#include <Ethernet.h>
+#include <EthernetUdp.h>
+
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Our MAC address
+IPAddress ip(192, 168, 1, 88);      // Our IP address 
+static uint16_t localPort = 8888;      // local port to listen on
+
+EthernetUDP Udp; // An EthernetUDP instance to let us send and receive packets over UDP
+
+#endif
+
+
 /*
 ██████╗ ██████╗ ███████╗███████╗███████╗████████╗     ██████╗ █████╗ ██████╗ ██████╗ 
 ██╔══██╗██╔══██╗██╔════╝██╔════╝██╔════╝╚══██╔══╝    ██╔════╝██╔══██╗██╔══██╗██╔══██╗
@@ -50,6 +69,7 @@ class presetCard
 {
 public:
   bool update();
+  void send(); // serialize and send our status
 
   // inputs - 12 bytes
   uint8_t leds[12]; // 12 analog levels
@@ -201,6 +221,23 @@ bool presetCard::update()
 
   return fc; // true if change
 }
+
+// serialize and send to host
+void presetCard::send(void){
+
+#ifdef USE_ETHERNET
+  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+  Udp.write("JCB0");
+  for (uint8_t cnt = 0 ; cnt < 24 ; cnt++)
+    Udp.write(faders[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 3 ; cnt++)
+    Udp.write(buttons[cnt]);    
+  Udp.endPacket();
+#endif
+
+}
+
+
 
 /*
  █████╗ ███████╗███████╗██╗ ██████╗ ███╗   ██╗     ██████╗ █████╗ ██████╗ ██████╗ 
@@ -515,15 +552,14 @@ public:
 
 // update each card in turn,
 void inline JandsCardBus::update()
-{
-  
+{  
   if (preset1.update()){
-    // send update
+    preset1.send();
   }
-
   preset2.update();
   palette.update();
   assign.update();
+
   master.update();  
 }
 
@@ -542,6 +578,10 @@ void inline JandsCardBus::update()
 // pointer to our entire control surface
 static JandsCardBus *surface = NULL;
 
+
+
+
+
 void setup()
 {
   Serial.begin(115200);
@@ -549,6 +589,11 @@ void setup()
     pinMode(c, OUTPUT);
   while (Serial.read() >= 0)
     ; // flush serial input buffers
+
+#ifdef USE_ETHERNET
+  Ethernet.begin(mac,ip);
+  Udp.begin(localPort);
+#endif      
 
   surface = new JandsCardBus(); // create the new surface class
   surface->preset1.setCardAddress(ADDR_PRESET_1);
