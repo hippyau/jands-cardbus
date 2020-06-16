@@ -40,18 +40,19 @@
 #endif
 
 
-
 #ifdef USE_ETHERNET
 
 #include <SPI.h>        
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Our MAC address
-IPAddress ip(192, 168, 1, 88);      // Our IP address 
+static byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Our MAC address
 static uint16_t localPort = 8888;      // local port to listen on
 
-EthernetUDP Udp; // An EthernetUDP instance to let us send and receive packets over UDP
+static IPAddress ip(192, 168, 1, 88);      // Our IP address 
+static IPAddress trg(192,168,1,49); // where we are sending to
+
+static EthernetUDP Udp; // An EthernetUDP instance to let us send and receive packets over UDP
 
 #endif
 
@@ -69,7 +70,6 @@ class presetCard
 {
 public:
   bool update();
-  void send(); // serialize and send our status
 
   // inputs - 12 bytes
   uint8_t leds[12]; // 12 analog levels
@@ -105,7 +105,7 @@ private:
   uint8_t oleds[12];
 };
 
-static uint8_t ledtest = 0;
+
 
 // Preset Card Driver
 bool presetCard::update()
@@ -159,14 +159,21 @@ bool presetCard::update()
     buttons[cnt] = readData();
   }
 
-  // TODO: SET LEDS FIX
 
-  // leds[0] = 255; // -- testing only
-  // leds[1] = 0;
-  // leds[2] = 0;
-  // leds[3] = 0;
-  // leds[4] = 255;
-  // leds[5] = 0;
+  // TODO: SET LEDS FIX
+  //  uint8_t level = 255;
+  //  leds[0] = level; 
+  //  leds[1] = level -= 21; // 255
+  //  leds[2] = level -= 21;
+  //  leds[3] = level -= 21;
+  //  leds[4] = level -= 21;
+  //  leds[5] = level -= 21;
+  //  leds[6] = level -= 22;
+  //  leds[7] = level -= 24;
+  //  leds[8] = level -= 26;
+  //  leds[9] = level -= 27;
+  //  leds[10] = level -= 30;
+  //  leds[11] = level -= 21; // 0 
 
   // 1..8
   for (uint8_t cnt = 0; cnt < 8; cnt++)
@@ -191,6 +198,7 @@ bool presetCard::update()
     }
   }
 
+
   // process changes
   for (uint8_t cnt = 0; cnt < 2; cnt++)
   {
@@ -210,11 +218,9 @@ bool presetCard::update()
     {
       fc = true; // fader change
       ofaders[cnt] = faders[cnt];
-
 #if defined(TESTING)
-      // Serial.printf("F%02d:%02x ",cnt,faders[cnt]);
-
-      //  if (cnt < 12) leds[cnt] = faders[cnt];
+      // Serial.printf("F%02d:%02x ",cnt,faders[cnt]); // fader changes
+      // if (cnt < 12) leds[cnt] = faders[cnt]; // set leds to faders
 #endif
     }
   }
@@ -222,20 +228,7 @@ bool presetCard::update()
   return fc; // true if change
 }
 
-// serialize and send to host
-void presetCard::send(void){
 
-#ifdef USE_ETHERNET
-  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-  Udp.write("JCB0");
-  for (uint8_t cnt = 0 ; cnt < 24 ; cnt++)
-    Udp.write(faders[cnt]);
-  for (uint8_t cnt = 0 ; cnt < 3 ; cnt++)
-    Udp.write(buttons[cnt]);    
-  Udp.endPacket();
-#endif
-
-}
 
 
 
@@ -253,10 +246,14 @@ class assignCard
 public:
   bool update();
 
+  // input
   uint8_t leds[2];
+
+  // output
   uint8_t buttons[1];
   uint8_t faders[8];
 
+  // special
   lcdModule lcd;
 
   assignCard() // constructor
@@ -278,6 +275,7 @@ private:
   uint8_t ofaders[8];
 };
 
+// process the assign card
 bool assignCard::update()
 {
   // buttons and LEDS
@@ -288,7 +286,6 @@ bool assignCard::update()
   writeData(leds[1]);
 
   // read 8 faders.....
-  // selectAddr(0xC4);
   bool fc = 0;
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
@@ -319,7 +316,7 @@ bool assignCard::update()
   {
     // Serial.printf("AB=0x%x\n", buttons[0]);
     lcd.setCursor(0, 0);
-    lcd.printf("Buttons: %x  ", buttons[0]);
+    lcd.printf("Assign Card -> Buttons: %x  ", buttons[0]);
     lcd.setCursor(0, 1);
     lcd.printf(" %03d  %03d  %03d  %03d  %03d  %03d  %03d  %03d", faders[0], faders[1], faders[2], faders[3], faders[4], faders[5], faders[6], faders[7]);
   }
@@ -327,6 +324,9 @@ bool assignCard::update()
 
   return fc;
 }
+
+
+
 
 /*
 ██████╗  █████╗ ██╗     ███████╗████████╗████████╗███████╗     ██████╗ █████╗ ██████╗ ██████╗ 
@@ -337,12 +337,12 @@ bool assignCard::update()
 ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝                                                                                                                                            
 */
 
-/* PaletteCard is 20 buttons and 20 red LEDS, spread across 3 bytes
+/* PaletteCard is 20 buttons and 20 red LEDS, spread across 3 bytes, with CARD ID at last nibble
 */
 class paletteCard
 {
 public:
-  bool update();
+  bool update(); 
 
   uint8_t leds[3];
   uint8_t buttons[3];
@@ -360,10 +360,9 @@ private:
   uint8_t old_buttons[3];
 };
 
+
 // Palette Card Driver
-// input - 3 bytes of LEDs (20 LED's all up)
-// output - 3 bytes of buttons (20 buttons)
-// return true on change detected
+// Returns: true on change detected
 bool paletteCard::update()
 {
   bool fc = 0; // flag a change has occured
@@ -393,6 +392,9 @@ bool paletteCard::update()
 
   return fc;
 }
+
+
+
 
 /*
 ███╗   ███╗ █████╗ ███████╗████████╗███████╗██████╗      ██████╗ █████╗ ██████╗ ██████╗ 
@@ -432,7 +434,7 @@ public:
     for (uint8_t cnt = 0; cnt < 3; cnt++)
       wheels[cnt] = 0;
     lcd.init(lcd_addr);
-    lcd.print("Master!");
+    lcd.print("Jands Master Card - V0.8 - Init OK ");
   }
 
 private:
@@ -443,11 +445,11 @@ private:
   uint8_t owheels[3];
 };
 
+
 // Master Card Driver
-// returns true on a change
+// Returns: true on change detected
 bool masterCard::update()
 {
-
   // buttons and LEDS
   selectAddr(card_addr | 0x0A); // SW2
   buttons[0] = readData();      // read 8 buttons
@@ -463,15 +465,13 @@ bool masterCard::update()
   writeData(leds[1]);
   selectAddr(card_addr | 0x0F); // LED7
   writeData(leds[2]);
-
   // encoder wheels
   wheels[2] = 0x0f & readData(); // top 4 bits are card ID
   selectAddr(card_addr | 0x02);  // wheels 1 and 2
   wheels[0] = readData();
   wheels[1] = (wheels[0] >> 4) & 0x0f; // high nibble
   wheels[0] = wheels[0] & 0x0f;        // low nibble
-
-  // read the 8 faders.....
+ // read the 8 faders.....
   selectAddr(card_addr | 0x04);
   bool fc = 0;
   for (uint8_t cnt = 0; cnt < 8; cnt++)
@@ -485,29 +485,30 @@ bool masterCard::update()
   }
 
   // look for changes
-  for (uint8_t n = 0; n < 8; n++)
+  for (uint8_t n = 0; n < 8; n++) // faders
   {
     if (ofaders[n] != faders[n])
     {
       fc = true; // flag change
       ofaders[n] = faders[n];
     }
-    for (uint8_t n = 0; n < 3; n++)
-    {
-      if (owheels[n] != wheels[n])
+  }
+  for (uint8_t n = 0; n < 3; n++) // wheels
+  {
+    if (owheels[n] != wheels[n])
       {
         fc = true;
         owheels[n] = wheels[n];
       }
-    }
-    for (uint8_t n = 0; n < 5; n++)
-    {
-      if (buttons[n] != obuttons[n])
+  }
+  for (uint8_t n = 0; n < 5; n++) // buttons
+  {
+    if (buttons[n] != obuttons[n])
       {
         fc = true;
         obuttons[n] = buttons[n];
       }
-    }
+  }
 
 #if defined(TESTING)
     // light up some leds when pressed buttons
@@ -524,9 +525,11 @@ bool masterCard::update()
       lcd.printf(" %03d  %03d  %03d  %03d  %03d  %03d  %03d  %03d", faders[0], faders[1], faders[2], faders[3], faders[4], faders[5], faders[6], faders[7]);
     }
 #endif
-  }
-
+ 
+ return fc;
 } // end master card update
+
+
 
 /*
      ██╗ █████╗ ███╗   ██╗██████╗ ███████╗     ██████╗ █████╗ ██████╗ ██████╗     ██████╗ ██╗   ██╗███████╗
@@ -547,22 +550,72 @@ public:
   assignCard assign;
   masterCard master;
 
-  void update();
+  bool update();
+  void send();
 };
 
-// update each card in turn,
-void inline JandsCardBus::update()
-{  
-  if (preset1.update()){
-    preset1.send();
-  }
-  preset2.update();
-  palette.update();
-  assign.update();
 
-  master.update();  
+
+
+
+// Update the control surface elements
+// Returns: true on change detected
+bool inline JandsCardBus::update()
+{  
+  uint8_t fc = 0;
+  fc += preset1.update();
+  fc += preset2.update();
+  fc += palette.update();
+  fc += assign.update();
+  fc += master.update();
+  return ((fc != 0) ? true : false);
 }
 
+
+ 
+// send surface state packet to host(s)
+void inline JandsCardBus::send()
+{  
+
+#ifdef USE_ETHERNET
+  Udp.beginPacket(trg, 8888);
+  
+  Udp.write("JCB0"); // header
+
+  // faders x 64 bytes
+  for (uint8_t cnt = 0 ; cnt < 24 ; cnt++)
+    Udp.write(preset1.faders[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 24 ; cnt++)
+    Udp.write(preset2.faders[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 8 ; cnt++)
+    Udp.write(assign.faders[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 8 ; cnt++)
+    Udp.write(master.faders[cnt]); // fader 8 is self test
+  
+  // buttons x 13 bytes - includes some Card ID
+  for (uint8_t cnt = 0 ; cnt < 2 ; cnt++)
+    Udp.write(preset1.buttons[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 2 ; cnt++)
+    Udp.write(preset2.buttons[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 1 ; cnt++)
+    Udp.write(assign.buttons[cnt]);
+  for (uint8_t cnt = 0 ; cnt < 3 ; cnt++)
+    Udp.write(palette.buttons[cnt]);  
+  for (uint8_t cnt = 0 ; cnt < 5 ; cnt++)
+    Udp.write(master.buttons[cnt]);
+
+  // wheels x 3 - up/down counters 0x00 -- 0x0F
+  for (uint8_t cnt = 0 ; cnt < 3 ; cnt++)
+    Udp.write(master.wheels[cnt]);
+
+  Udp.endPacket(); // send frame
+#endif
+
+}
+
+
+// pointer to our entire control surface
+static JandsCardBus *surface = NULL;
 
 
 
@@ -574,12 +627,6 @@ void inline JandsCardBus::update()
 ███████║███████╗   ██║   ╚██████╔╝██║     
 ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
 */
-
-// pointer to our entire control surface
-static JandsCardBus *surface = NULL;
-
-
-
 
 
 void setup()
@@ -600,6 +647,10 @@ void setup()
   surface->preset2.setCardAddress(ADDR_PRESET_2);
 }
 
+
+
+
+
 /* 
 ███╗   ███╗ █████╗ ██╗███╗   ██╗
 ████╗ ████║██╔══██╗██║████╗  ██║
@@ -611,7 +662,9 @@ void setup()
 void loop()
 {
 
-  surface->update();
+  if (surface->update()){
+    surface->send();
+  }
 
   surface->preset1.leds[0] = surface->assign.faders[0];
   surface->preset1.leds[1] = surface->assign.faders[1];
