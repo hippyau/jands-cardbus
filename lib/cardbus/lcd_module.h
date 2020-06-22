@@ -1,6 +1,12 @@
+#pragma once
+
 #ifndef _LCD_CARDBUS_H
 #define _LCD_CARDBUS_H
 
+
+#include "Arduino.h"
+#include "hardware.h"
+#include "Print.h"
 
 #define LCD_COLUMNS 40
 #define LCD_ROWS    2
@@ -63,6 +69,8 @@ public:
   void init(uint8_t address);
   void setContrast(uint8_t value);  
   void setCursor(uint8_t col, uint8_t row);
+  void clear(); 
+  void createChar(uint8_t location, uint8_t charmap[]);
 
   // can use lcd.print, lcd.println, lcd.printf() etc
   virtual size_t write(uint8_t); 
@@ -86,17 +94,16 @@ private:
   uint8_t row_offset[2];
 };
 
+
+
 // initialize LCD at given bus address and turn it on
-void lcdModule::init(uint8_t address)
+// this is a slow process... just over 10ms
+void inline lcdModule::init(uint8_t address)
 {
   lcd_addr = address;
 
   selectAddr(lcd_addr);
-//#if defined(TESTING)
-//  writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_1LINE );
-//#else
   writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE );
-//#endif
   delay(5);
   writeData(LCD_CLEARDISPLAY);
   delay(2);
@@ -105,13 +112,6 @@ void lcdModule::init(uint8_t address)
   writeData(0x0F); // display on, cursor on, blinking on
   setContrast(contrast);
 }
-
-// locate the cursor
-void lcdModule::setCursor(uint8_t col, uint8_t row)
-{
-  if (row < LCD_ROWS)
-    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));
-}  
 
 // write a cmd byte to the LCD
 void inline lcdModule::write_cmd(uint8_t lcd_command)
@@ -135,10 +135,34 @@ inline size_t lcdModule::write(uint8_t value)
 }
 
 // sets the DAC to control LCD contrast.
-void lcdModule::setContrast(uint8_t value)
+void inline lcdModule::setContrast(uint8_t value)
 {
   selectAddr(lcd_addr + 2);
   writeData(value);
+}
+
+// clear the display
+void inline lcdModule::clear()
+{
+  write_cmd(LCD_CLEARDISPLAY);
+  delay(2);  
+}  
+
+// locate the cursor
+void inline lcdModule::setCursor(uint8_t col, uint8_t row)
+{
+  if (row < LCD_ROWS)
+    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));
+}  
+
+// Allows us to fill the first 8 CGRAM locations
+// with custom characters
+void inline lcdModule::createChar(uint8_t location, uint8_t charmap[]) {
+  location &= 0x7; // we only have 8 locations 0-7
+  write_cmd(LCD_SETCGRAMADDR | (location << 3));
+  for (int i=0; i<8; i++) {
+    write_data(charmap[i]);
+  }
 }
 
 
