@@ -11,8 +11,24 @@
 */
 
 // configuration
-//#define USE_ETHERNET
+#define USE_ETHERNET
 #define TESTING
+#define FADER_TESTING
+#define ASSIGN_CARD_LCD_TESTING // fader values on LCD line 1
+#define PRESET_LEDS_TESTING
+
+
+#if defined (USE_ETHERNET)
+  #include <SPI.h>        
+  #include <Ethernet.h>
+  #include <EthernetUdp.h>
+  #define UDP_TX_PACKET_MAX_SIZE 256 //increase UDP size to 256 bytes
+  static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Our MAC address
+  static uint16_t localPort = 8888;       // Port to listen on
+  static IPAddress ip(192, 168, 1, 88);   // Our IP address 
+  static IPAddress trg(192,168, 1, 49);   // Where we are sending to
+  static EthernetUDP Udp;  
+#endif
 
 
 #include <JandsCardBus.h>
@@ -25,18 +41,6 @@
 
 #if defined (TESTING)
   #include "debug.h"
-#endif
-
-#if defined (USE_ETHERNET)
-  #include <SPI.h>        
-  #include <Ethernet.h>
-  #include <EthernetUdp.h>
-  #define UDP_TX_PACKET_MAX_SIZE 256 //increase UDP size to 256 bytes
-  static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Our MAC address
-  static uint16_t localPort = 8888;       // Port to listen on
-  static IPAddress ip(192, 168, 1, 88);   // Our IP address 
-  static IPAddress trg(192,168, 1, 255);   // Where we are sending to
-  static EthernetUDP Udp;  
 #endif
 
 
@@ -61,7 +65,7 @@ void inline sendSurfaceState()
 
 #ifdef USE_ETHERNET
   Udp.beginPacket(trg, 8888);
-  Udp.write("JCB\0"); // header
+  Udp.write("JCB0"); // header
 
   // faders x 64 bytes
   for (uint8_t cnt = 0 ; cnt < 24 ; cnt++)
@@ -100,7 +104,7 @@ void inline sendSurfaceState()
 void hostSetSurfaceState()
 {  
 
-#ifdef USE_ETHERNET
+#if defined(USE_ETHERNET)
 static char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
 static int packetSize;
 static IPAddress remote;
@@ -133,7 +137,6 @@ packetSize =  Udp.parsePacket();
       //Serial.println(packetBuffer);
 
     }
-
 
 
 }
@@ -198,8 +201,9 @@ static SButton buttonPlus(BTN_PLUS);
 static SButton buttonMinus(BTN_MINUS);
 
 static keypad_input Key;
-
 static unsigned int input_value = 123;
+
+
 
 
 /*
@@ -222,8 +226,9 @@ void setup()
     pinMode(c, OUTPUT);
   
 #ifdef USE_ETHERNET
-  Ethernet.begin(mac,ip);
+  Ethernet.begin(mac, ip);
   Udp.begin(localPort);
+  delay(100);
 #endif      
 
 
@@ -239,7 +244,7 @@ void setup()
   Menu->add_screen(secondary_screen);
 #endif  
 
-  Key.edit(&Surface->assign.lcd, (char*)"Channel", &input_value, 1024, 0,0 );
+  Key.edit(&Surface->assign.lcd, (char*)"Channel", &input_value, 1024, 0, 0 );
 
 }
 
@@ -258,10 +263,9 @@ void loop()
 
   if (Surface->update()){  // has something on the surface changed?      
       sendSurfaceState(); 
+    
   }
-  hostSetSurfaceState(); // process any incomming commands
-
-
+  //hostSetSurfaceState(); // process any incomming commands
 
   while (Surface->keys.isKeyAvailable()){
     uint8_t keyp = Surface->keys.getKey();
@@ -269,12 +273,12 @@ void loop()
     Key.key(keyp);
   }
 
+
+
   if (Key.check()){
-      static bool line = 0;
-      line = !line;
       Serial.printf("Val: %i\n",Key.currentValue());
       //Key.edit(&Surface->assign.lcd, (char*)"Level: ", &input_value, 1024, 0, line );
-      Key.input(&Surface->assign.lcd, (char*)"Level", 0, line );
+      Key.input(&Surface->assign.lcd, (char*)"Level", 0, 0 );
   }
 
 
@@ -314,5 +318,7 @@ val2 = Surface->preset1.faders[2];
   Surface->preset1.leds[1] = Surface->assign.faders[1];
 
   fps(); // measure updates per second
+  
+ 
 #endif
 }

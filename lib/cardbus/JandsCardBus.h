@@ -15,12 +15,25 @@
 //#define BUTTON_TESTING
 
 
+/* ignore 0->1 transitions and changes less than 2 difference */
+#define FADER_FILTERING  // filtering fader values 
+
+/* when reading faders, takes 3 samples and average them for final fader values
+   not entirely required if filtering is being done, but helps with jitter and noise */
+#define FADER_AVERAGING  
+#define FADER_AVERAGING_DELAY  5  // delay in uS between samples - shorter the better
+
+
+
 // bus driver
 #include "hardware.h"
+
 // components
 #include "surface_buttons.h"
 #include "lcd_module.h"
+#include "button_def.h"
 #include "keypad_input.h"
+
 // individual card drivers
 #include "card_preset.h"
 #include "card_palette.h"
@@ -28,7 +41,7 @@
 #include "card_master.h"
 
 // while we update buttons and LEDs every loop, only poll faders only every N milliseconds
-#define FADER_POLL_SPEED  10  
+#define FADER_POLL_SPEED  15  
 
 
 // the whole control surface
@@ -128,7 +141,9 @@ bool inline JandsCardBus::update()
 
    check_faders_now = 0;
 
-   return ((fc != 0) ? true : false);
+   if (fc) return true;
+   return false;
+   
 
 }
 

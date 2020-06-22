@@ -91,7 +91,7 @@ bool assignCard::update(bool check_faders_now = true)
     obuttons[0] = buttons[0];
   }
 
-#if defined(LCD_TESTING)
+#if defined(ASSIGN_CARD_LCD_TESTING)
   leds[1] = buttons[0]; // light up pressed button in green LEDS
   if (fc)
   {

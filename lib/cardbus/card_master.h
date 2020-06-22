@@ -66,6 +66,8 @@ private:
 // Returns: true on change detected
 bool masterCard::update(bool check_faders_now = true)
 {
+    
+
   // buttons and LEDS
   selectAddr(card_addr | 0x0A); // SW2
   buttons[0] = readData();        // read 8 buttons
@@ -92,13 +94,11 @@ bool masterCard::update(bool check_faders_now = true)
 
  if (check_faders_now){  // time to check faders
   // read the 8 faders.....
-  selectAddr(card_addr | 0x04);
- 
+
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    writeMux(0x78 + cnt);
+    writeMux(0x78 + cnt);    
     selectAddr(card_addr | 0x04);
-    clk_ds();
     clk_ds();
     selectAddr(card_addr | 0x05);
     faders[cnt] = readData();

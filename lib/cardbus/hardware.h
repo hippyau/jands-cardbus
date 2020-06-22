@@ -12,7 +12,7 @@
 // comment out for using arduino pin mapping where, on boards where the data bus is not consective pins (like Leonardo)
 #define NO_PIN_MAPPING // use direct port commands
 
-#define PORT_DELAY 2 // delay before read and after write
+#define PORT_DELAY 4 // delay before read and after write
 #define LCD_DELAY 40 // delay on LCD commands
 
 // arduino pin numbers - teensy pin names
@@ -96,17 +96,18 @@ void inline writec(uint8_t inb)
 {
   digitalWrite(DIR, inb & (1 << 0));  // PORT E
   digitalWrite(BUF, inb & (1 << 1)); 
-
   digitalWrite(MUX, inb & (1 << 2));  // PORT C
   digitalWrite(ALE, inb & (1 << 3));
   digitalWrite(DS, inb & (1 << 4));
   digitalWrite(RW, inb & (1 << 5));
+  delayMicroseconds(PORT_DELAY);
 }
 
 // mux address latch pulse
 void inline clk_mux()
 {
   digitalWrite(MUX, 0);
+  delayMicroseconds(PORT_DELAY);
   digitalWrite(MUX, 1);
 }
 
@@ -114,6 +115,7 @@ void inline clk_mux()
 void inline clk_ale()
 {
   digitalWrite(ALE, 0);
+  delayMicroseconds(PORT_DELAY);
   digitalWrite(ALE, 1);
 }
 
@@ -121,6 +123,7 @@ void inline clk_ale()
 void inline clk_ds()
 {
   digitalWrite(DS, 1);
+  delayMicroseconds(PORT_DELAY);
   digitalWrite(DS, 0);
 }
 

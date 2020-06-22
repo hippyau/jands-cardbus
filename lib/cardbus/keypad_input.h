@@ -9,7 +9,6 @@
 #include "limits.h"
 
 
-
 class keypad_input
 {
 private:
@@ -31,7 +30,6 @@ public:
     void updateDisplay();
 
     void key(uint8_t pressed); // keys fed in from keyboard
-
     
     void input(lcdModule * _lcd, char * strName, uint8_t x, uint8_t y);
     void edit(lcdModule * _lcd, char * strName, unsigned int * ptrValue, unsigned int _max_value, uint8_t x, uint8_t y);
@@ -43,6 +41,14 @@ public:
 };
 
 
+// setup for editing a number from the keypad - enter numbers or +/- 
+// press record to finish or exit to cancel.
+
+// _lcd - pointer to the LCD display to use
+// strName - char * like "Channel"
+// ptrValue is a pointer to the value to edit
+// _max_value is the max allowed value
+// x, y - position on LCD
 void keypad_input::edit(lcdModule * _lcd, char * strName, unsigned int * ptrValue, unsigned int _max_value, uint8_t x, uint8_t y)
 {
      edit_mode = 1;
@@ -66,7 +72,7 @@ void keypad_input::edit(lcdModule * _lcd, char * strName, unsigned int * ptrValu
 
      for (uint8_t c = 0 ; c < 16 ; c++) display_value[c] = 0; 
      if (max_digits <= 3) {sprintf(display_value,"%03d",(unsigned int)value); }         
-     else if (max_digits = 4) sprintf(display_value,"%04d",(unsigned int)value);
+     else if (max_digits == 4)  { sprintf(display_value,"%04d",(unsigned int)value); }
      
      // display
      dispx = x;
@@ -76,7 +82,10 @@ void keypad_input::edit(lcdModule * _lcd, char * strName, unsigned int * ptrValu
   
 };
 
-
+// setup for inputting a number from the keypad
+// _lcd - pointer to the LCD display to use
+// strName - char * like "Channel"
+// x, y - position on LCD
 void keypad_input::input(lcdModule * _lcd, char * strName, uint8_t x, uint8_t y)
 {
      edit_mode = 0;
@@ -99,8 +108,6 @@ void keypad_input::input(lcdModule * _lcd, char * strName, uint8_t x, uint8_t y)
 
 
 
-
-
 void keypad_input::updateDisplay(){
    lcd->setCursor(dispx,dispy);      
    lcd->print("                                        ");
@@ -108,7 +115,7 @@ void keypad_input::updateDisplay(){
 
    if (edit_mode){
     if (max_digits <= 3) lcd->printf("%s: %03d ",name,edval);
-    else if (max_digits = 4) lcd->printf("%s: %04d ",name,edval);
+    else if (max_digits == 4) lcd->printf("%s: %04d ",name,edval);
    } else   
    lcd->printf("%s: %s",name,display_value);
 
@@ -187,7 +194,9 @@ void keypad_input::key(uint8_t pressed){
 
         // cancel editing
         if (pressed == BTN_EXIT) {
-           edval = orig_value;
+           if (edit_mode) {
+            edval = orig_value;
+           }                     
            done = true;                      
         } else
 

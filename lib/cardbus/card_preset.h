@@ -46,12 +46,40 @@ public:
     card_addr = addr;
   };
 
+
 private:
+  uint8_t read_card_mux_fader(uint8_t mux, uint8_t cnt);   
   uint8_t card_addr;
   uint8_t obuttons[2]; // for change comparisons
   uint8_t ofaders[24]; 
   uint8_t oleds[12];
 };
+
+
+// read fader number cnt from mux address
+uint8_t presetCard::read_card_mux_fader(uint8_t mux, uint8_t cnt){
+#if defined(FADER_AVERAGING)    
+  uint8_t avg[3];
+  for (uint8_t c2 = 0; c2 < 3 ; c2++){
+#endif      
+    writeMux(mux + cnt);    
+    selectAddr(card_addr | 0x04);
+    clk_ds();
+    selectAddr(card_addr | 0x05);     
+#if defined(FADER_AVERAGING)       
+    avg[c2] = readData();
+    delayMicroseconds(FADER_AVERAGING_DELAY);
+  }
+#else    
+    return (readData());     
+#endif            
+#if defined(FADER_AVERAGING)       
+    return ((avg[0]+avg[1]+avg[2])/3);
+#endif    
+}
+
+
+
 
 
 
@@ -76,50 +104,100 @@ if (check_faders_now) {
 
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    writeMux(0xD8 + cnt);
-    selectAddr(card_addr | 0x04);
-    clk_ds();
-    clk_ds();
-    selectAddr(card_addr | 0x05);
-    faders[cnt] = readData();
+    faders[cnt] = read_card_mux_fader(0xD8, cnt);
+
+
+// #if defined(FADER_AVERAGING)    
+//     uint8_t avg[3];
+//     for (uint8_t c2 = 0; c2 < 3 ; c2++){
+// #endif      
+//     writeMux(0xD8 + cnt);    
+//     selectAddr(card_addr | 0x04);
+//     clk_ds();
+//     selectAddr(card_addr | 0x05); 
+// #if defined(FADER_AVERAGING)       
+//     avg[c2] = readData();
+// #else
+//     faders[cnt] = readData();     
+// #endif    
+//     delayMicroseconds(10);
+//     }
+
+// #if defined(FADER_AVERAGING)       
+//     faders[cnt] = ((avg[0]+avg[1]+avg[2])/3);
+// #endif    
   }
 
 // 9..16
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    writeMux(0xB8 + cnt);
-    selectAddr(card_addr | 0x04);
-    clk_ds();
-    clk_ds();
-    selectAddr(card_addr | 0x05);
-    faders[cnt + 8] = readData();
+    faders[cnt+8] = read_card_mux_fader(0xB8, cnt);
+    
+  // uint8_t avg[3];
+  //   for (uint8_t c2 = 0; c2 < 3 ; c2++){
+  //   writeMux(0xB8 + cnt);
+  //   selectAddr(card_addr | 0x04);
+  //   clk_ds();
+  //   selectAddr(card_addr | 0x05); 
+  // avg[c2] = readData();
+  // delayMicroseconds(10);
+  //   }
+  //   //faders[cnt + 8] = readData();
+  //   faders[cnt+8] = ((avg[0]+avg[1]+avg[2])/3);
+
+
   }
 
 // 17..24
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    writeMux(0x78 + cnt);
-    selectAddr(card_addr | 0x04);
-    clk_ds();
-    clk_ds();
-    selectAddr(card_addr | 0x05);
-    faders[cnt + 16] = readData();
+    faders[cnt+16] = read_card_mux_fader(0x78, cnt);
+    // uint8_t avg[3];
+    // for (uint8_t c2 = 0; c2 < 3 ; c2++){  
+    // writeMux(0x78 + cnt);
+    // selectAddr(card_addr | 0x04);
+    // clk_ds();
+    // selectAddr(card_addr | 0x05);        
+    // //faders[cnt + 16] = readData();
+    //  avg[c2] = readData();
+    //  delayMicroseconds(10);
+    // }
+    //   //faders[cnt + 8] = readData();
+    // faders[cnt+16] = ((avg[0]+avg[1]+avg[2])/3);
   }
+
 
   for (uint8_t cnt = 0; cnt < 24; cnt++)
   {
-    if (ofaders[cnt] != faders[cnt])
+
+#if defined (FADER_FILTERING)    
+    if ((ofaders[cnt] == 0) & (faders[cnt] == 1)){
+      // ignore 0-1-0-0-0-1-0 glitches 
+    }
+    else if (  (abs(ofaders[cnt] - faders[cnt]) <= 1) & (faders[cnt] != 255) & (faders[cnt] != 0) ) {
+      // ignore differences of 1, filters our edge cases
+    }
+    else 
+#endif    
+    
+    // look for dirferences
+    if ((ofaders[cnt] != faders[cnt] ))
     {
       fc = true; // fader change
       ofaders[cnt] = faders[cnt];
 #if defined(FADER_TESTING)
-      Serial.printf("F%02d:%02x ",cnt,faders[cnt]); // fader changes
-      // if (cnt < 12) leds[cnt] = faders[cnt]; // set leds to faders
+      Serial.printf("P%x F%02d:%02x ",card_addr, cnt ,faders[cnt]); // fader changes      
 #endif
     }
+
+    swap(1,12);
+
+
   }
 
-} // check faders
+
+
+} 
 
 
   // process two bytes of buttons
@@ -129,56 +207,49 @@ if (check_faders_now) {
     buttons[cnt] = readData();
   }
 
-  // TODO: SET LEDS FIX
-  //  uint8_t level = 255;
-  //  leds[0] = level; 
-  //  leds[1] = level -= 21; // 255
-  //  leds[2] = level -= 21;
-  //  leds[3] = level -= 21;
-  //  leds[4] = level -= 21;
-  //  leds[5] = level -= 21;
-  //  leds[6] = level -= 22;
-  //  leds[7] = level -= 24;
-  //  leds[8] = level -= 26;
-  //  leds[9] = level -= 27;
-  //  leds[10] = level -= 30;
-  //  leds[11] = level -= 21; // 0 
 
+// set LEDS
   // 1..8
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    if (leds[cnt] != oleds[cnt])
-    {
-      selectAddr(card_addr | 0x06);
-      writeData(leds[cnt]);
-      writeMux(0xf0 + cnt);
-      oleds[cnt] = leds[cnt];
-    }
+   
+#if defined(PRESET_LEDS_TESTING)
+      // force leds to mimic faders
+    leds[cnt] = faders[cnt];
+#endif
+    selectAddr(card_addr | 0x06);
+    writeData(leds[cnt]);
+    writeMux(0xf0 + cnt);
+    delayMicroseconds(1);
+    writeMux(0xf8 + cnt);
+    oleds[cnt] = leds[cnt];
+  
   }
-
   // 9..12
   for (uint8_t cnt = 0; cnt < 4; cnt++)
   {
-    if (leds[cnt + 8] != oleds[cnt + 8])
-    {
+#if defined(PRESET_LEDS_TESTING)
+      // force leds to mimic faders
+      leds[cnt+8] = faders[cnt+8];
+#endif
       selectAddr(card_addr | 0x06);
-      writeData(leds[cnt + 8]);
+      writeData(leds[cnt+8]);
       writeMux(0xe8 + cnt);
-    }
+      delayMicroseconds(1);
+      writeMux(0xf8 + cnt);
   }
 
-  // process changes
+  // process button changes
   for (uint8_t cnt = 0; cnt < 2; cnt++)
   {
     if (buttons[cnt] != obuttons[cnt])
     {
-      fc = true;
       obuttons[cnt] = buttons[cnt];
 #if defined(BUTTON_TESTING)
-      Serial.printf("P1-%d=0x%x\n", cnt, buttons[cnt]);
+      Serial.printf("P%d:%d=0x%x\n", card_addr, cnt, buttons[cnt]);
 #endif
+     fc = true;
     }
   }
-
   return fc; // true if change
 }

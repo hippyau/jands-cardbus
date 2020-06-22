@@ -54,7 +54,7 @@ private:
 // Returns: true on change detected
 bool paletteCard::update()
 {
-  bool fc = 0; // flag a change has occured
+  bool fc = false; // flag a change has occured
 
   // process three banks of leds & buttons
   for (uint8_t cnt = 0; cnt < 3; cnt++)
