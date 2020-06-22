@@ -82,7 +82,6 @@ uint8_t presetCard::read_card_mux_fader(uint8_t mux, uint8_t cnt){
 
 
 
-
 // Preset Card Driver
 bool presetCard::update(bool check_faders_now = true)
 {
@@ -105,67 +104,17 @@ if (check_faders_now) {
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
     faders[cnt] = read_card_mux_fader(0xD8, cnt);
-
-
-// #if defined(FADER_AVERAGING)    
-//     uint8_t avg[3];
-//     for (uint8_t c2 = 0; c2 < 3 ; c2++){
-// #endif      
-//     writeMux(0xD8 + cnt);    
-//     selectAddr(card_addr | 0x04);
-//     clk_ds();
-//     selectAddr(card_addr | 0x05); 
-// #if defined(FADER_AVERAGING)       
-//     avg[c2] = readData();
-// #else
-//     faders[cnt] = readData();     
-// #endif    
-//     delayMicroseconds(10);
-//     }
-
-// #if defined(FADER_AVERAGING)       
-//     faders[cnt] = ((avg[0]+avg[1]+avg[2])/3);
-// #endif    
   }
-
 // 9..16
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
     faders[cnt+8] = read_card_mux_fader(0xB8, cnt);
-    
-  // uint8_t avg[3];
-  //   for (uint8_t c2 = 0; c2 < 3 ; c2++){
-  //   writeMux(0xB8 + cnt);
-  //   selectAddr(card_addr | 0x04);
-  //   clk_ds();
-  //   selectAddr(card_addr | 0x05); 
-  // avg[c2] = readData();
-  // delayMicroseconds(10);
-  //   }
-  //   //faders[cnt + 8] = readData();
-  //   faders[cnt+8] = ((avg[0]+avg[1]+avg[2])/3);
-
-
   }
-
 // 17..24
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
     faders[cnt+16] = read_card_mux_fader(0x78, cnt);
-    // uint8_t avg[3];
-    // for (uint8_t c2 = 0; c2 < 3 ; c2++){  
-    // writeMux(0x78 + cnt);
-    // selectAddr(card_addr | 0x04);
-    // clk_ds();
-    // selectAddr(card_addr | 0x05);        
-    // //faders[cnt + 16] = readData();
-    //  avg[c2] = readData();
-    //  delayMicroseconds(10);
-    // }
-    //   //faders[cnt + 8] = readData();
-    // faders[cnt+16] = ((avg[0]+avg[1]+avg[2])/3);
   }
-
 
   for (uint8_t cnt = 0; cnt < 24; cnt++)
   {
@@ -189,15 +138,8 @@ if (check_faders_now) {
       Serial.printf("P%x F%02d:%02x ",card_addr, cnt ,faders[cnt]); // fader changes      
 #endif
     }
-
-    swap(1,12);
-
-
   }
-
-
-
-} 
+} // check faders now
 
 
   // process two bytes of buttons
@@ -206,7 +148,6 @@ if (check_faders_now) {
     selectAddr(card_addr | (0x0E + cnt));
     buttons[cnt] = readData();
   }
-
 
 // set LEDS
   // 1..8

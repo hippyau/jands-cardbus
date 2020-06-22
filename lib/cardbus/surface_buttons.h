@@ -4,6 +4,7 @@
 #include "button_def.h"
 #include "fifo.h"
 
+
 // updated every loop, register of each surface button state
 // of buttons defined in button_def.h
 static uint8_t sbuttons[TOTAL_BUTTONS];

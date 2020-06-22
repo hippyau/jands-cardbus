@@ -56,18 +56,41 @@ private:
   uint8_t card_addr;
   uint8_t lcd_addr;
 
+  uint8_t read_card_mux_fader(uint8_t mux, uint8_t cnt);
+
   uint8_t obuttons[5]; // for change comparisons...
   uint8_t ofaders[8]; 
   uint8_t owheels[3];
 };
 
 
+// read fader number cnt from mux address
+uint8_t masterCard::read_card_mux_fader(uint8_t mux, uint8_t cnt){
+#if defined(FADER_AVERAGING)    
+  uint8_t avg[3];
+  for (uint8_t c2 = 0; c2 < 3 ; c2++){
+#endif      
+    writeMux(mux + cnt);    
+    selectAddr(card_addr | 0x04);
+    clk_ds();
+    selectAddr(card_addr | 0x05);     
+#if defined(FADER_AVERAGING)       
+    avg[c2] = readData();
+    delayMicroseconds(FADER_AVERAGING_DELAY);
+  }
+#else    
+    return (readData());     
+#endif            
+#if defined(FADER_AVERAGING)       
+    return ((avg[0]+avg[1]+avg[2])/3);
+#endif    
+}
+
+
 // Master Card Driver
 // Returns: true on change detected
 bool masterCard::update(bool check_faders_now = true)
 {
-    
-
   // buttons and LEDS
   selectAddr(card_addr | 0x0A); // SW2
   buttons[0] = readData();        // read 8 buttons
@@ -93,29 +116,36 @@ bool masterCard::update(bool check_faders_now = true)
  bool fc = 0;
 
  if (check_faders_now){  // time to check faders
-  // read the 8 faders.....
 
+  // read the 8 faders.....
   for (uint8_t cnt = 0; cnt < 8; cnt++)
   {
-    writeMux(0x78 + cnt);    
-    selectAddr(card_addr | 0x04);
-    clk_ds();
-    selectAddr(card_addr | 0x05);
-    faders[cnt] = readData();
+    faders[cnt] = read_card_mux_fader(0x78, cnt);
   }
  
-    // look for changes
-    for (uint8_t n = 0; n < 8; n++) // faders
+  // look for fader changes
+    for (uint8_t cnt = 0; cnt < 8; cnt++) // faders
     {
-      if (ofaders[n] != faders[n])
+#if defined (FADER_FILTERING)    
+    if ((ofaders[cnt] == 0) & (faders[cnt] == 1)){
+      // ignore 0-1-0-0-0-1-0 glitches 
+    }
+    else if (  (abs(ofaders[cnt] - faders[cnt]) <= 1) & (faders[cnt] != 255) & (faders[cnt] != 0) ) {
+      // ignore differences of 1, filters our edge cases
+    }
+    else 
+#endif 
+      if (ofaders[cnt] != faders[cnt])
       {
         fc = true; // flag change
-        ofaders[n] = faders[n];
+        ofaders[cnt] = faders[cnt];
       }
     }
-  } // end check faders
+  }
 
-  for (uint8_t n = 0; n < 3; n++) // wheels
+
+  // look for wheel changes
+  for (uint8_t n = 0; n < 3; n++) 
   {
     if (owheels[n] != wheels[n])
       {
@@ -123,7 +153,9 @@ bool masterCard::update(bool check_faders_now = true)
         owheels[n] = wheels[n];
       }
   }
-  for (uint8_t n = 0; n < 5; n++) // buttons
+
+  // look for button changes
+  for (uint8_t n = 0; n < 5; n++)
   {
     if (buttons[n] != obuttons[n])
       {
@@ -132,12 +164,11 @@ bool masterCard::update(bool check_faders_now = true)
       }
   }
 
-#if defined(TESTING)
+#if defined(MASTER_CARD_TESTING)
     // light up some leds when pressed buttons
     leds[0] = buttons[0];
     leds[1] = buttons[1];
     leds[2] = buttons[2];
-
     if (fc)
     {
       // Serial.printf("AB=0x%x\n", buttons[0]);

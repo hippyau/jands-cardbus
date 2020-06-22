@@ -8,12 +8,14 @@
  ╚════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝     ╚═════╝  ╚═════╝ ╚══════╝
 */
 
-
 //#define TESTING 
 //#define LCD_TESTING
 //#define FADER_TESTING
 //#define BUTTON_TESTING
 
+
+/* while we update buttons and LEDs every loop, only poll faders only every N milliseconds */
+#define FADER_POLL_SPEED  25  
 
 /* ignore 0->1 transitions and changes less than 2 difference */
 #define FADER_FILTERING  // filtering fader values 
@@ -21,11 +23,19 @@
 /* when reading faders, takes 3 samples and average them for final fader values
    not entirely required if filtering is being done, but helps with jitter and noise */
 #define FADER_AVERAGING  
-#define FADER_AVERAGING_DELAY  5  // delay in uS between samples - shorter the better
+#define FADER_AVERAGING_DELAY  10  // delay in uS between samples - shorter the better
 
 
 
-// bus driver
+// card addresses
+#define ADDR_PRESET_1 (0x00)
+#define ADDR_PRESET_2 (0x10)
+#define ADDR_MASTER   (0x80)
+#define ADDR_PALETTE  (0x90)
+#define ADDR_ASSIGN   (0xC0)
+
+
+// hardware bus driver routines
 #include "hardware.h"
 
 // components
@@ -40,8 +50,6 @@
 #include "card_assign.h"
 #include "card_master.h"
 
-// while we update buttons and LEDs every loop, only poll faders only every N milliseconds
-#define FADER_POLL_SPEED  15  
 
 
 // the whole control surface
@@ -56,9 +64,9 @@ public:
 
   SKeyboard keys;  
 
-  bool update(); // update all cards
-  void send();  // send desk state 
+  bool update(); // update all cards  
 };
+
 
 
 // Update the control surface elements
@@ -137,13 +145,13 @@ bool inline JandsCardBus::update()
   }
 
    // update the keyboard queue
-   keys.update();
+  keys.update();
 
-   check_faders_now = 0;
+  check_faders_now = 0;
 
-   if (fc) return true;
-   return false;
-   
+  if (fc) return true;
+  
+  return false;
 
 }
 

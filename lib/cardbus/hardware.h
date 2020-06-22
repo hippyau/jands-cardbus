@@ -1,19 +1,14 @@
 #ifndef _HARDWARE_H
 #define _HARDWARE_H
 
-// card addresses
-#define ADDR_PRESET_1 (0x00)
-#define ADDR_PRESET_2 (0x10)
-#define ADDR_MASTER (0x80)
 
-#define ADDR_PALETTE (0x9D) // fix these
-#define ADDR_ASSIGN (0xCE)
 
 // comment out for using arduino pin mapping where, on boards where the data bus is not consective pins (like Leonardo)
 #define NO_PIN_MAPPING // use direct port commands
 
-#define PORT_DELAY 4 // delay before read and after write
+#define PORT_DELAY 3 // delay before read and after write
 #define LCD_DELAY 40 // delay on LCD commands
+
 
 // arduino pin numbers - teensy pin names
 

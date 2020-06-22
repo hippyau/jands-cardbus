@@ -59,7 +59,7 @@ bool paletteCard::update()
   // process three banks of leds & buttons
   for (uint8_t cnt = 0; cnt < 3; cnt++)
   {
-    selectAddr(card_addr + cnt);
+    selectAddr(card_addr | ((0x0d) + cnt));
     writeData(leds[cnt]);
     buttons[cnt] = readData();
   }

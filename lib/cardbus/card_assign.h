@@ -47,34 +47,66 @@ public:
   };
 
 private:
+  uint8_t read_card_mux_fader(uint8_t mux, uint8_t cnt);
+
   uint8_t card_addr;
   uint8_t lcd_addr;
   uint8_t obuttons[1]; // for comparisons
   uint8_t ofaders[8];
 };
 
+
+// read fader number cnt from mux address
+uint8_t assignCard::read_card_mux_fader(uint8_t mux, uint8_t cnt){
+#if defined(FADER_AVERAGING)    
+  uint8_t avg[3];
+  for (uint8_t c2 = 0; c2 < 3 ; c2++){
+#endif      
+    writeMux(mux + cnt);    
+    selectAddr(card_addr | 0x04);
+    clk_ds();
+    selectAddr(card_addr | 0x05);     
+#if defined(FADER_AVERAGING)       
+    avg[c2] = readData();
+    delayMicroseconds(FADER_AVERAGING_DELAY);
+  }
+#else    
+    return (readData());     
+#endif            
+#if defined(FADER_AVERAGING)       
+    return ((avg[0]+avg[1]+avg[2])/3);
+#endif    
+}
+
+
+
+
 // process the assign card
 bool assignCard::update(bool check_faders_now = true)
 {
   bool fc = 0;
   // buttons and LEDS
-  selectAddr(card_addr); // first byte of LED data (R)
+  selectAddr(card_addr | (0x0E)); // first byte of LED data (R)
   writeData(leds[0]);
   buttons[0] = readData();   // read 8 buttons at this address
-  selectAddr(card_addr + 1); // second byte of LED data (G)
+  selectAddr(card_addr | (0x0F)); // second byte of LED data (G)
   writeData(leds[1]); 
 
  if (check_faders_now){
   // read 8 faders.,,
       for (uint8_t cnt = 0; cnt < 8; cnt++)
     {
-      writeMux(0x40 + cnt);
-      selectAddr(0xC4);
-      clk_ds();
-      clk_ds();
-      selectAddr(0xC5);
-      faders[cnt] = readData();
+      faders[cnt] = read_card_mux_fader(0x40,cnt);
 
+#if defined (FADER_FILTERING)    
+    if ((ofaders[cnt] == 0) & (faders[cnt] == 1)){
+      // ignore 0-1-0-0-0-1-0 glitches 
+    }
+    else if (  (abs(ofaders[cnt] - faders[cnt]) <= 1) & (faders[cnt] != 255) & (faders[cnt] != 0) ) {
+      // ignore differences of 1, filters our edge cases
+    }
+    else 
+#endif  
       // detect changes
       if (faders[cnt] != ofaders[cnt])
       {

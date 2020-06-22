@@ -12,10 +12,13 @@
 
 // configuration
 #define USE_ETHERNET
+
 #define TESTING
-#define FADER_TESTING
+#define FADER_TESTING 
 #define ASSIGN_CARD_LCD_TESTING // fader values on LCD line 1
-#define PRESET_LEDS_TESTING
+#define PRESET_LEDS_TESTING // LED's mimic faders
+#define MASTER_CARD_TESTING // display info on the master card LCD
+
 
 
 #if defined (USE_ETHERNET)
