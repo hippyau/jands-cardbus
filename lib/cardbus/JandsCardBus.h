@@ -13,7 +13,6 @@
 //#define FADER_TESTING
 //#define BUTTON_TESTING
 
-
 /* while we update buttons and LEDs every loop, only poll faders only every N milliseconds */
 #define FADER_POLL_SPEED  25  
 
@@ -68,6 +67,13 @@ public:
 };
 
 
+
+// pointer to our entire control surface
+static JandsCardBus * Surface = NULL;
+
+
+
+/* Implementation */
 
 // Update the control surface elements
 // Returns: true on change detected
