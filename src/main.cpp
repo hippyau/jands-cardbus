@@ -19,6 +19,9 @@
 #define PRESET_LEDS_TESTING // LED's mimic faders
 #define MASTER_CARD_TESTING // display info on the master card LCD
 
+//#define TEST_MENUS // testing menu system
+
+#include <JandsCardBus.h>
 
 
 #if defined (USE_ETHERNET)
@@ -34,13 +37,11 @@
 #endif
 
 
-#include <JandsCardBus.h>
-
-
 #if defined(TEST_MENUS)
 //  Menu system
 #include "LiquidMenu.h"
 #endif
+
 
 #if defined (TESTING)
   #include "debug.h"
