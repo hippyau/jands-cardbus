@@ -1,15 +1,27 @@
 # jands-cardbus
 CPP/Arduino code to master the Jands Card Bus interface, and code to access several interface cards.  
 
+*YouTube Video*---> 
+[![Video](https://img.youtube.com/vi/OtjAWHLR7C0/0.jpg)](https://www.youtube.com/watch?v=OtjAWHLR7C0)
+
+
+
+## Overview 
+
 The Card Bus is common to several types of old (discontinued) Jands lighting consoles, including Jands EVENT4, Jands Hog, Stage, and ESP series consoles.
 
 This code has so far been proven on the EVENT4 series, with more coming on the Jands Hog Echelon series cards.
 
-This is a hack job, just make it work for now.
+This is a hack job, but it works...
 
 ![Jands EVENT4 Palette Card](https://github.com/hippyau/jands-cardbus/raw/master/docs/img/408-pallete-card.png)
 
 The Jands EVENT4 Palette Card.
+
+
+Here is a video showing the maunual toggling of bits on the Palette card during development...  [https://vimeo.com/419880334]
+
+
 
 
 ## Code
