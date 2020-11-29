@@ -22,6 +22,11 @@ The Jands EVENT4 Palette Card.
 Here is a video showing the maunual toggling of bits on the Palette card during development...  [https://vimeo.com/419880334]
 
 
+## Important to note 
+That there are different pinouts for some different Card Busses, depending on the series of console.  See Issue below.
+https://github.com/hippyau/jands-cardbus/issues/1
+Using the wrong pinout for the card you are working with will potentially damage the card!
+
 
 
 ## Code
@@ -50,7 +55,6 @@ You can disable this behaviour here...
 ```
 https://github.com/hippyau/jands-cardbus/blob/38304a2e782aeb63bad4ccb7294a74088c640326/lib/cardbus/hardware.h#L7
 
-
 You can change the PINS here... (but the D0..D7 must be consecutive)
 
 ```
@@ -69,6 +73,8 @@ You can change the PINS here... (but the D0..D7 must be consecutive)
 
 ```
 https://github.com/hippyau/jands-cardbus/blob/38304a2e782aeb63bad4ccb7294a74088c640326/lib/cardbus/hardware.h#L15
+
+
 
 
 
