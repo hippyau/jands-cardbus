@@ -23,6 +23,9 @@ Here is a video showing the maunual toggling of bits on the Palette card during 
 
 
 ## Important to note 
+
+Not all Jands Card Busses are created equal.  DO NOT directly connect an ESP-II card to a the Event 4 / Echelon series bus (the one I present here), it is a different pinout, but seems to be very similar operation.
+
 That there are different pinouts for some different Card Busses, depending on the series of console.  See Issue below.
 https://github.com/hippyau/jands-cardbus/issues/1
 Using the wrong pinout for the card you are working with will potentially damage the card!
