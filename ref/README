@@ -1,0 +1,6 @@
+
+This directory contains early code and GUI to manipulate the bus manually, but the Arduino using serial commands.  
+
+Can manipulate the individual bus bits and control lines, and read back values...
+
+very hacky, very sloppy, GUI has code left over from other project in it :)

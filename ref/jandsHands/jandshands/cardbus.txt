@@ -1,0 +1,111 @@
+
+ 
+//    how to read and write the palette card....
+//     
+//    DIR HIGH
+//    
+//    MUX HIGH
+//    ALE_HIGH
+//    DS LOW
+//    RW LOW
+//    
+//    Set card and sub-device address
+//    
+//    ALE LOW  // Latch address
+//    ALE HIGH
+//    
+//    Set LED Data
+//    
+//    DS HIGH  // LED latch
+//    DS LOW
+//    
+//    RW HIGH // Change bus direction
+//    DIR LOW
+//    
+//    DS HIGH
+//    
+//    Read Buttons
+//    
+//    DS LOW
+//    
+
+
+
+
+
+Assign card....
+
+dir HIGH
+mux HIGH
+ale HIGH
+
+; set LEDS
+
+write address CE or CF
+
+latch ALE
+
+write data
+for each bit...
+    if CE high and CF low = red
+    if CE low and CF high = green
+    if CE low and CF low = off
+
+latch DS
+
+; read Buttons
+
+write address CE (or CF for card identity bits)
+
+latch ALE
+
+RW HIGH // Change bus direction <- input
+DIR LOW
+
+DS HIGH
+Read Buttons 1..8
+DS LOW
+
+RW LOW // Change bus direction -> output
+DIR HIGH
+
+
+
+; set LCD contrast
+
+dir HIGH
+mux HIGH
+ale HIGH
+
+write address C2 for 74hc573 resistor ladder DAC
+
+latch ALE
+
+write data - 0x10 workes well
+
+latch DS
+
+
+; init LCD
+
+Addr C0
+
+Write 0x01 clear LCD
+Write 0x02 Home LCD
+Write 0x0F display on with flashing cursor :)
+// todo : work out second line....
+
+
+; talk to LCD
+dir HIGH
+mux HIGH
+ale HIGH
+
+write address C0 for instruction or C1 for data
+
+latch ALE
+
+write data
+
+latch DS
+
