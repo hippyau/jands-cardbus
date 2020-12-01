@@ -9,11 +9,12 @@ Surface Button Definitions - based on a Event 408
 32-51 = palette card 
 
 52-91 = master card...
+91-167 = program card
 */
 
 
 
-#define TOTAL_BUTTONS   92
+#define TOTAL_BUTTONS   168
 
 
 // Master Card Buttons
@@ -80,5 +81,8 @@ Surface Button Definitions - based on a Event 408
 #define BTN_SOFT3       62
 #define BTN_SOFT4       63
 #define BTN_SOFT5       64
+
+
+
 
 

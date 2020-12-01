@@ -13,7 +13,7 @@
 */
 
 // configuration
-#define USE_ETHERNET
+//#define USE_ETHERNET
 
 
 #define TESTING
@@ -285,9 +285,57 @@ void setup()
 #endif      
 
 
+
+
   Surface = new JandsCardBus(); // create out new surface class
   Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
   Surface->preset2.setCardAddress(ADDR_PRESET_2);
+
+
+  Surface->keys._usb_key[140] = KEY_LEFT;
+  Surface->keys._usb_key[141] = KEY_UP;
+  Surface->keys._usb_key[142] = KEY_DOWN;
+  Surface->keys._usb_key[143] = KEY_RIGHT;
+
+  Surface->keys._usb_key[133] = KEYPAD_0;
+  Surface->keys._usb_key[132] = KEYPAD_1;
+  Surface->keys._usb_key[134] = KEYPAD_2;
+  Surface->keys._usb_key[136] = KEYPAD_3;
+  Surface->keys._usb_key[125] = KEYPAD_4;
+  Surface->keys._usb_key[127] = KEYPAD_5;
+  Surface->keys._usb_key[129] = KEYPAD_6;
+  Surface->keys._usb_key[124] = KEYPAD_7;
+  Surface->keys._usb_key[126] = KEYPAD_8;
+  Surface->keys._usb_key[128] = KEYPAD_9;
+  Surface->keys._usb_key[135] = KEYPAD_PERIOD;
+  Surface->keys._usb_key[138] = '@';
+  Surface->keys._usb_key[123] = KEYPAD_PLUS;
+  Surface->keys._usb_key[121] = KEYPAD_MINUS;
+  Surface->keys._usb_key[117] = KEY_BACKSPACE;
+  Surface->keys._usb_key[130] = '>';
+  Surface->keys._usb_key[131] = 'f';
+
+  Surface->keys._usb_key[153] = MODIFIERKEY_LEFT_CTRL;
+  Surface->keys._usb_key[99] = MODIFIERKEY_RIGHT_CTRL;
+
+  Surface->keys._usb_key[137] = KEY_ENTER;
+  Surface->keys._usb_key[97] = KEY_HOME;
+  Surface->keys._usb_key[144] = KEY_END;
+  Surface->keys._usb_key[145] = KEY_PAGE_UP;
+  Surface->keys._usb_key[146] = KEY_PAGE_DOWN;
+
+  Surface->keys._usb_key[152] = KEY_SPACE;   // NEXT
+
+  Surface->keys._usb_key[98] = KEY_ESC;   // clear/restore
+
+
+  Surface->keys._usb_key[162] = 'i';
+  Surface->keys._usb_key[162] = 'd';
+  Surface->keys._usb_key[163] = 'k';
+  Surface->keys._usb_key[166] = 'f';
+  Surface->keys._usb_key[167] = 'a';
+
+  
 
 
 #if defined(TEST_MENUS)
@@ -689,6 +737,9 @@ void loop()
     uint8_t keyp = Surface->keys.getKey();
     Serial.printf("Key: %i\n",(int)keyp);
     CmdLine(keyp);   
+
+
+
     //Key.key(keyp);
   }
 

@@ -4,6 +4,9 @@
 #include "button_def.h"
 #include "fifo.h"
 
+#define USB_KEYBOARD // act as a USB keyboard
+
+
 // updated every loop, register of each surface button state
 // of buttons defined in button_def.h
 static uint8_t sbuttons[TOTAL_BUTTONS];
@@ -18,15 +21,20 @@ public:
      _sbutton = sbutton_number;
      _lastDebounceTime = _lastMillis = 0;
      _debounceDelay = debounceDelay;
-     _state = _lastState = LOW;
+     _state = _lastState = LOW;  
 	  }
   
   bool check(bool triggerState);
 
+
+
 private:
 	uint8_t _sbutton, _state, _lastState;
-    uint16_t _debounceDelay;
+  uint16_t _debounceDelay;
 	uint32_t _lastMillis, _lastDebounceTime;
+
+
+
 };
 
 // Check if button was pressed, with debouncing.
@@ -63,6 +71,9 @@ class SKeyboard {
      uint8_t getKey() { return keyQueue.pop(); };
      void flush() { while (keyQueue.size()) keyQueue.pop(); };
 
+#ifdef USB_KEYBOARD
+     uint16_t _usb_key[TOTAL_BUTTONS] = {0};
+#endif
     private:
      uint8_t laststate[TOTAL_BUTTONS];
      FIFO keyQueue;   
@@ -71,7 +82,25 @@ class SKeyboard {
 
 void SKeyboard::update(){
     for (uint8_t cnt = 0 ; cnt < TOTAL_BUTTONS ; cnt++) {
-      if ((laststate[cnt] != 0) & (sbuttons[cnt] == 0)) keyQueue.push(cnt); 
+      
+      if ((laststate[cnt] != 0) & (sbuttons[cnt] == 0)) {
+       keyQueue.push(cnt); 
+      }
+
+#ifdef USB_KEYBOARD
+      if (laststate[cnt] != sbuttons[cnt]) {
+        if (_usb_key[cnt] > 0){  // if a key assigned
+          if (laststate[cnt] == 0) {
+            Keyboard.press(_usb_key[cnt]);
+          }
+           else
+          {
+            Keyboard.release(_usb_key[cnt]);
+          }
+        }      
+      }
+#endif
+
       laststate[cnt] = sbuttons[cnt];      
     }
 }

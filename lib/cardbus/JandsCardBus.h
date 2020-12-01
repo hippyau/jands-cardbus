@@ -48,6 +48,7 @@
 #include "card_palette.h"
 #include "card_assign.h"
 #include "card_master.h"
+#include "card_program_1k.h"
 
 
 
@@ -60,6 +61,7 @@ public:
   paletteCard palette;
   assignCard assign;
   masterCard master;
+  programCard program;
 
   SKeyboard keys;  
 
@@ -89,12 +91,14 @@ bool inline JandsCardBus::update()
   }
 
   uint8_t fc = 0;
+  
   fc += preset1.update(check_faders_now);
   fc += preset2.update(check_faders_now);
   fc += assign.update(check_faders_now);
   fc += master.update(check_faders_now);
   fc += palette.update();
-  
+  fc += program.update();
+   
   if (fc) {
     // pull buttons from individual bits out to an array
 
@@ -148,6 +152,38 @@ bool inline JandsCardBus::update()
     for ( b = 0 ; b < 8 ; b++) // fifth byte 32-37
      sbuttons[i+b] = master.buttons[4] & (1 << b);
     i+=b;
+
+ // program card buttons 1-76
+    for ( b = 0 ; b < 8 ; b++) // first byte
+     sbuttons[i+b] = program.buttons[0] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // second byte
+     sbuttons[i+b] = program.buttons[1] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // third byte
+     sbuttons[i+b] = program.buttons[2] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fourth byte
+     sbuttons[i+b] = program.buttons[3] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fifth byte 32-37
+     sbuttons[i+b] = program.buttons[4] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // sixth byte 38 - 45
+     sbuttons[i+b] = program.buttons[5] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // seventh byte 46 - 53
+     sbuttons[i+b] = program.buttons[6] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // eighth byte 54 - 61
+     sbuttons[i+b] = program.buttons[7] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // ninth byte 62 - 69
+     sbuttons[i+b] = program.buttons[8] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 4 ; b++) // tenth byte 70 - 73
+     sbuttons[i+b] = program.buttons[9] & (1 << b);
+    i+=b;    
   }
 
    // update the keyboard queue

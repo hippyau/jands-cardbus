@@ -28,7 +28,7 @@
 /* 
    So we maps to the 0-13 pins to the correct processor pin for Arduino in use.
 
-   If NO_PIN_MAPPING is defined we use direct port commands
+   If NO_PIN_MAPPING is defined we use direct port commands, which is slower
 
    Note: pins 0 and 1 are used by typical Uno Arduinos etc as the serial UART.
    Some USB Arduinos don't use these pins, and these are the ones we prefer!
@@ -68,13 +68,14 @@ uint8_t inline readd()
   bin[7] = digitalRead(7);
   return (128 * bin[7] + 64 * bin[6] + 32 * bin[5] + 16 * bin[4] + 8 * bin[3] + 4 * bin[2] + 2 * bin[1] + bin[0]);
 #else
-  delayMicroseconds(PORT_DELAY);
-  return PIND;
+  delayMicroseconds(PORT_DELAY); // let settle
+  return PIND; // return data
 #endif
 }
 
 // change bus port pin direction
 // accept INPUT or OUTPUT
+// TODO: maintain state and only change as required.
 void inline dirb(int dir)
 {
 #ifndef NO_PIN_MAPPING
@@ -130,8 +131,11 @@ void inline clk_ds_lcd()
   digitalWrite(DS, 0);
 }
 
+
+/* Higher-level */
+
 // in order to make multiple writes to same address more efficient in loops, we use this to only
-// latch an address if it has changed, otherwise do nothing.
+// latch an address if it has changed since the previous call to selectAddr, otherwise do nothing except change direction
 // note: databus is always left in output state after this call
 void inline selectAddr(uint8_t addr)
 {
@@ -147,12 +151,14 @@ void inline selectAddr(uint8_t addr)
   }
 }
 
+
 // write a byte to the device (at a previously selected address)
 void inline writeData(uint8_t data)
 {
   writed(data);
   clk_ds();
 }
+
 
 // write a byte to the bus and clock the ALEH (Mux) line
 void inline writeMux(uint8_t data)
@@ -161,12 +167,14 @@ void inline writeMux(uint8_t data)
   clk_mux();
 }
 
+
 // write a byte to the device at a previously selected address, with a small delay in the clock pulse
 void inline writeDataDelay(uint8_t data)
 {
   writed(data);
   clk_ds_lcd();
 }
+
 
 // flip the data bus direction, select the current device, and read it!
 // always returns with bus in an output configuration
@@ -190,5 +198,6 @@ uint8_t inline readData()
 
   return result;
 }
+
 
 #endif // _HARDWARE_H
