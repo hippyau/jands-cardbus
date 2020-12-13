@@ -13,8 +13,8 @@ Surface Button Definitions - based on a Event 408
 */
 
 
-
-#define TOTAL_BUTTONS   168
+                  // Event4 + Echelon 1K
+#define TOTAL_BUTTONS   168 + 144
 
 
 // Master Card Buttons

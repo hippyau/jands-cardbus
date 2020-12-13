@@ -25,13 +25,21 @@
 #define FADER_AVERAGING_DELAY  10  // delay in uS between samples - shorter the better
 
 
+// Default Card Addresses
 
-// card addresses
+// - Event 408
 #define ADDR_PRESET_1 (0x00)
 #define ADDR_PRESET_2 (0x10)
 #define ADDR_MASTER   (0x80)
 #define ADDR_PALETTE  (0x90)
 #define ADDR_ASSIGN   (0xC0)
+
+// - Echelon 1K
+#define ADDR_PROGRAM_1K (0xF0) // program card, only one allowed, always 0xF0
+#define ADDR_MENU_1_1K (0x00) // menu card 0
+#define ADDR_MENU_2_1K (0x10) // menu card 1
+#define ADDR_PLAYBACK_1_1K (0x80) // playback card 1
+#define ADDR_PLAYBACK_2_1K (0x90) // playback card 2
 
 
 // hardware bus driver routines
@@ -49,8 +57,8 @@
 #include "card_assign.h"
 #include "card_master.h"
 #include "card_program_1k.h"
-
-
+#include "card_menu_1k.h"
+#include "card_playback_1k.h"
 
 // the whole control surface
 class JandsCardBus
@@ -62,7 +70,11 @@ public:
   assignCard assign;
   masterCard master;
   programCard program;
-
+  menuCard menu1;
+  menuCard menu2;
+  playbackCard playback1;
+  playbackCard playback2;
+  
   SKeyboard keys;  
 
   bool update(); // update all cards  
@@ -92,13 +104,21 @@ bool inline JandsCardBus::update()
 
   uint8_t fc = 0;
   
+  /* 
   fc += preset1.update(check_faders_now);
   fc += preset2.update(check_faders_now);
   fc += assign.update(check_faders_now);
   fc += master.update(check_faders_now);
   fc += palette.update();
+ */  
+
+  // Jands Echelon 1K cards
   fc += program.update();
-   
+  fc += menu1.update();
+  fc += menu2.update();
+  fc += playback1.update(check_faders_now); 
+  fc += playback2.update(check_faders_now); 
+
   if (fc) {
     // pull buttons from individual bits out to an array
 
@@ -184,7 +204,80 @@ bool inline JandsCardBus::update()
     for ( b = 0 ; b < 4 ; b++) // tenth byte 70 - 73
      sbuttons[i+b] = program.buttons[9] & (1 << b);
     i+=b;    
+  
+
+ // menu card 1 buttons 1-36
+    for ( b = 0 ; b < 8 ; b++) // first byte
+     sbuttons[i+b] = menu1.buttons[0] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // second byte
+     sbuttons[i+b] = menu1.buttons[1] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // third byte
+     sbuttons[i+b] = menu1.buttons[2] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fourth byte
+     sbuttons[i+b] = menu1.buttons[3] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 4 ; b++) // fifth byte 32-37
+     sbuttons[i+b] = menu1.buttons[4] & (1 << b);
+    i+=b;
+
+   // menu card 2 buttons 1-36
+    for ( b = 0 ; b < 8 ; b++) // first byte
+     sbuttons[i+b] = menu2.buttons[0] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // second byte
+     sbuttons[i+b] = menu2.buttons[1] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // third byte
+     sbuttons[i+b] = menu2.buttons[2] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fourth byte
+     sbuttons[i+b] = menu2.buttons[3] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 4 ; b++) // fifth byte 32-37
+     sbuttons[i+b] = menu2.buttons[4] & (1 << b);
+    i+=b;
+
+// playback card 1 buttons 1-34
+    for ( b = 0 ; b < 8 ; b++) // first byte
+     sbuttons[i+b] = playback1.buttons[0] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // second byte
+     sbuttons[i+b] = playback1.buttons[1] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // third byte
+     sbuttons[i+b] = playback1.buttons[2] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fourth byte
+     sbuttons[i+b] = playback1.buttons[3] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 2 ; b++) // fifth byte 32-33
+     sbuttons[i+b] = playback1.buttons[4] & (1 << b);
+    i+=b;
+
+// playback card 2 buttons 1-34
+    for ( b = 0 ; b < 8 ; b++) // first byte
+     sbuttons[i+b] = playback2.buttons[0] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // second byte
+     sbuttons[i+b] = playback2.buttons[1] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // third byte
+     sbuttons[i+b] = playback2.buttons[2] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 8 ; b++) // fourth byte
+     sbuttons[i+b] = playback2.buttons[3] & (1 << b);
+    i+=b;
+    for ( b = 0 ; b < 2 ; b++) // fifth byte 32-33
+     sbuttons[i+b] = playback2.buttons[4] & (1 << b);
+    i+=b;
+
+ 
   }
+
+
 
    // update the keyboard queue
   keys.update();

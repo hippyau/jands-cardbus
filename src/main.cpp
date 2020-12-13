@@ -253,6 +253,7 @@ static SButton buttonRight(BTN_RIGHT);
 static SButton buttonPlus(BTN_PLUS);
 static SButton buttonMinus(BTN_MINUS);
 
+
 static keypad_input Key;
 static unsigned int input_value = 123;
 
@@ -270,10 +271,15 @@ static unsigned int input_value = 123;
 
 void setup()
 {
+
+ 
   Serial.begin(115200);    
   while (Serial.read() >= 0)
     ; // flush serial input buffers
-  
+
+  delay(3000);
+
+
   for (int c = 0; c < 14; c++)
     // setup pins as outputs
     pinMode(c, OUTPUT);
@@ -284,14 +290,24 @@ void setup()
   delay(100);
 #endif      
 
-
-
-
   Surface = new JandsCardBus(); // create out new surface class
-  Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
-  Surface->preset2.setCardAddress(ADDR_PRESET_2);
+
+// configure surface
+
+//  Event 408
+//  Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
+//  Surface->preset2.setCardAddress(ADDR_PRESET_2);
+
+// Echelon 1K -- detect and initialize cards
+  Surface->menu1.init(ADDR_MENU_1_1K);
+  Surface->menu2.init(ADDR_MENU_2_1K);
+  Surface->playback1.init(ADDR_PLAYBACK_1_1K);
+  Surface->playback2.init(ADDR_PLAYBACK_2_1K);
+  Surface->program.init(ADDR_PROGRAM_1K);
 
 
+// map 1K program card keys to USB-HID keyboard 
+ if (Surface->program.detected) {
   Surface->keys._usb_key[140] = KEY_LEFT;
   Surface->keys._usb_key[141] = KEY_UP;
   Surface->keys._usb_key[142] = KEY_DOWN;
@@ -328,13 +344,12 @@ void setup()
 
   Surface->keys._usb_key[98] = KEY_ESC;   // clear/restore
 
-
   Surface->keys._usb_key[162] = 'i';
   Surface->keys._usb_key[162] = 'd';
   Surface->keys._usb_key[163] = 'k';
   Surface->keys._usb_key[166] = 'f';
   Surface->keys._usb_key[167] = 'a';
-
+ }
   
 
 

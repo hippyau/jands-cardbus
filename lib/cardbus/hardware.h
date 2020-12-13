@@ -144,10 +144,10 @@ void inline selectAddr(uint8_t addr)
   dirb(OUTPUT); // output to bus
   if (addr != reg_last_addr)
   {               // only select address if not the same as last address selected.
+    reg_last_addr = addr;
     writec(0x0d); // DIR HIGH, MUX HIGH, ALE HIGH
     writed(addr); //
-    clk_ale();
-    reg_last_addr = addr;
+    clk_ale();     
   }
 }
 

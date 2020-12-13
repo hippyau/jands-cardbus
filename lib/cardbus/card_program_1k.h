@@ -12,8 +12,6 @@ Echelon PROGRAM Card
                                                                                                                                                                                                                
 */
 
-#define ADDR_PROGRAM_1K (0xF0)
-
 
 // debugging 
 #define PROGRAM_1K_CARD_TESTING  (true)
@@ -22,42 +20,71 @@ Echelon PROGRAM Card
 class programCard
 {
 public:
+  bool init(uint8_t nAddr);
   bool update();
-
-  // inputs - 2 bytes
-  uint8_t leds[2];
-
-  // outputs - 16 bytes
-  uint8_t buttons[10]; // 76 buttons
-  uint8_t wheels[3];  // 4 bit counter x 3
-
-
-  programCard() // constructor
-  {
-    card_addr = ADDR_PROGRAM_1K;     // default base address for a master card, can change latter
-    lcd_addr = card_addr | 0x00; // not supportive of multiple assign cards
-    for (uint8_t cnt = 0; cnt < 2; cnt++)
-      leds[cnt] = 0;
-    for (uint8_t cnt = 0; cnt < 10; cnt++)
-      buttons[cnt] = obuttons[cnt] = 0;
-    for (uint8_t cnt = 0; cnt < 3; cnt++)
-      wheels[cnt] = owheels[cnt] = 0;  
-  }
-
+    
+  uint8_t leds[2];     // [w] 16 leds
+  uint8_t buttons[10]; // [r] 76 buttons
+  uint8_t wheels[3];   // [r] 4 bit counter x 3
+  uint8_t card_id;     // [r] one byte. should be %01100001 for a ECHMENU2 card 
 
   void setCardAddress(uint8_t addr)
   {
     card_addr = addr;
   };
 
+  bool detected; 
 
 private:
+ 
   uint8_t card_addr;
   uint8_t lcd_addr;
 
   uint8_t obuttons[10]; // for change comparisons...
   uint8_t owheels[3];
+
+  // ECHPROG4 IC7 should return %01100011
+  uint8_t programCard::getCardId(void);
+
 };
+
+
+
+
+bool programCard::init(uint8_t nAddr) {
+
+    setCardAddress(nAddr);
+    detected = false;
+    getCardId();
+    if (card_id == 0b01100011){
+#if defined(PROGRAM_1K_CARD_TESTING)
+      Serial.printf("Found ECHPROG4 Card @ 0x%02X\n",card_addr);
+      detected = true;
+#endif        
+    } else {
+      Serial.printf("Not Found ECHPROG4 Card @ 0x%02X\n",card_addr);
+      detected = false;
+      return detected; 
+    }
+
+    // zero out leds and buttons
+    for (uint8_t cnt = 0; cnt < 2; cnt++)
+      leds[cnt] = 0;
+    for (uint8_t cnt = 0; cnt < 10; cnt++)
+      buttons[cnt] = obuttons[cnt] = 0;  
+    for (uint8_t cnt = 0; cnt < 3; cnt++)
+       wheels[cnt] = owheels[cnt] = 0;  
+
+  return detected; // card detected
+}
+
+
+// ECHPROG4 IC7 should return %01100011
+uint8_t programCard::getCardId(void) {
+    selectAddr(card_addr | 0x0F); // Card ID
+    card_id = readData();
+    return card_id;    
+}
 
 
 
@@ -65,6 +92,10 @@ private:
 // Returns: true on change detected
 bool programCard::update()
 {
+  if (!detected) {
+    return;  // card is not present, don't update...
+  }
+
   // buttons and LEDS
   selectAddr(card_addr | 0x05); // 
   buttons[0] = readData();        // read 8 buttons
@@ -91,7 +122,7 @@ bool programCard::update()
   selectAddr(card_addr | 0x0F); // LED7 / ENC1 - encoder 3
   writeData(leds[2]);             // write 8 LEDS
   
-    // encoder wheels
+  // encoder wheels
   wheels[2] = 0x0f & buttons[9];//readData(); // top 4 bits are card ID, ignore
   buttons[9] = buttons[9] >> 4;
   selectAddr(card_addr | 0x00);  // ENC0 - encoder 1 + 2

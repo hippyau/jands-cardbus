@@ -67,7 +67,7 @@ class lcdModule : public Print
 {
 public:
   void init(uint8_t address);
-  void setContrast(uint8_t value);  
+  void setContrast(uint8_t value);
   void setCursor(uint8_t col, uint8_t row);
   void clear(); 
   void createChar(uint8_t location, uint8_t charmap[]);
@@ -80,6 +80,7 @@ public:
   {
    contrast = 0x05;
    lcd_addr = 0;
+
    numlines = LCD_ROWS;
    row_offset[0] = 0;
    row_offset[1] = 0x40;
@@ -102,7 +103,7 @@ void inline lcdModule::init(uint8_t address)
 {
   lcd_addr = address;
 
-  selectAddr(lcd_addr);
+  selectAddr(lcd_addr); 
   writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE );
   delay(5);
   writeData(LCD_CLEARDISPLAY);
@@ -134,6 +135,9 @@ inline size_t lcdModule::write(uint8_t value)
   return 1; // assume sucess
 }
 
+// TODO: Move to event4 cards with LCD's, or make optional,
+//       because this is not correct for other series cards,
+//       might create side effects...
 // sets the DAC to control LCD contrast.
 void inline lcdModule::setContrast(uint8_t value)
 {
