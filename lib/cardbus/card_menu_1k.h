@@ -14,9 +14,6 @@ Echelon MENU Card
                                                                                                                                                                                                                
 */
 
-// debugging 
-#define MENU_1K_CARD_TESTING  (true)
-
 
 #define MENU_1K_DEFAULT_CONSTRAST   (0x08)
 

@@ -15,18 +15,25 @@
 // configuration
 //#define USE_ETHERNET
 
-
+// General Debug
 #define TESTING
 #define FADER_TESTING 
-#define ASSIGN_CARD_LCD_TESTING // fader values on LCD line 1
-#define PRESET_LEDS_TESTING // LED's mimic faders
-#define MASTER_CARD_TESTING // display info on the master card LCD
 //#define TEST_MENUS // testing menu system
+
+
+// Event 4xx
+#define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
+#define PRESET_LEDS_TESTING (true) // LED's mimic faders
+#define MASTER_CARD_TESTING (true) // display info on the master card LCD
+
+// Echelon 1K
+#define PROGRAM_1K_CARD_TESTING  (true)
+#define PLAYBACK_1K_CARD_TESTING  (true)
+#define MENU_1K_CARD_TESTING  (true)
 
 
 // CardBus driver
 #include <JandsCardBus.h>
-
 
 
 #if defined (USE_ETHERNET)

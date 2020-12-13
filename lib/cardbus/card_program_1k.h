@@ -14,7 +14,7 @@ Echelon PROGRAM Card
 
 
 // debugging 
-#define PROGRAM_1K_CARD_TESTING  (true)
+
 
 
 class programCard
@@ -62,7 +62,7 @@ bool programCard::init(uint8_t nAddr) {
       detected = true;
 #endif        
     } else {
-      Serial.printf("Not Found ECHPROG4 Card @ 0x%02X\n",card_addr);
+      Serial.printf("Not Found - Program Card @ 0x%02X\n",card_addr);
       detected = false;
       return detected; 
     }

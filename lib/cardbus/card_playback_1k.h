@@ -13,10 +13,6 @@ Echelon PLAYBACK Card (ECHPBK2.SC1 Oct 1, 1999, D.Timmins)
                                                                                                                                                                                                                
 */
 
-// debugging 
-#define PLAYBACK_1K_CARD_TESTING  (true)
-
-
 #define PLAYBACK_1K_DEFAULT_CONSTRAST   (0x08)
 
 
