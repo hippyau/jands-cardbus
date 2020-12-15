@@ -5,7 +5,6 @@ CPP/Arduino code to master the Jands Card Bus interface, and code to access seve
 [![Video](https://img.youtube.com/vi/OtjAWHLR7C0/0.jpg)](https://www.youtube.com/watch?v=OtjAWHLR7C0)
 
 
-
 ## Overview 
 
 The Card Bus is common to several types of old (discontinued) Jands lighting consoles, including Jands EVENT4, Jands Hog, Stage, and ESP series consoles.
@@ -31,10 +30,44 @@ https://github.com/hippyau/jands-cardbus/issues/1
 Using the wrong pinout for the card you are working with will potentially damage the card!
 
 
+## CLI
 
-## Code
+There is a CLI available, which helps in reading and working out the card bus...
 
-So far, the EVENT4 Assign, Pallete, Master and Preset cards are supported, with all LCDs, buttons, faders (with filtering) and encoders.
+```
+JCB >> reboot
+Soft Reboot...
+Found ECHMENU2 Card @ 0x00
+Not Found ECHMENU2 Card @ 0x10
+Not Found - Playback Card @ 0x80
+Not Found - Playback Card @ 0x90
+Not Found - Program Card @ 0xF0
+help
+Available commands: (command with arguments provide usage help when no arguments given)
+
+version - print firmware version
+run     - enable cardbus update loop
+stop    - disable cardbus update loop
+stat    - print cardbus statistics
+reboot  - reboot
+
+Debug commands:
+
+set     - select hex bus [address 0x00..0xFF] (aka ALEL) where high nibble is card addres, low nibble is device on the card
+mux     - set a mux [hex address] (aka ALEH) for the currently selected card & device
+write   - select hex bus [address] and write hex [data]
+read    - read bus at current address, or option [hex address] also selects device 
+
+------ Jands Card Bus Master CLI
+JCB >> 
+```
+
+## Coverage
+
+So far, the Event4xx series Assign, Pallete, Master and Preset cards are supported, with all LCDs, buttons, faders (with filtering) and encoders.
+Also the Echelon 1000 Menu, Program, and Playback cards are supported, though be aware some addresses overlap the Event4 series.
+
+Then Echelon 1K series also includes some USB Keyboard emulation support for the Program card. 
 
 ![Jands EVENT408](https://github.com/hippyau/jands-cardbus/raw/master/docs/img/event408.jpg)
 
