@@ -7,15 +7,15 @@ CPP/Arduino code to master the Jands Card Bus interface, and code to access seve
 
 ## Overview 
 
-The Card Bus is common to several types of old (discontinued) Jands lighting consoles, including Jands EVENT4, Jands Hog, Stage, and ESP series consoles.
+The Card Bus is common to several types of old (discontinued) Jands lighting consoles, including Jands Event4, Jands Hog Echelon, Stage, and ESP series consoles.
 
-This code has so far been proven on the EVENT4 series, with more coming on the Jands Hog Echelon series cards.
+This code has so far been proven on the Event4 and Echelon 1K series.
 
-This is a hack job, but it works...
+This is a hack job, not nice c++, it's arduino based.... but it works!
 
-![Jands EVENT4 Palette Card](https://github.com/hippyau/jands-cardbus/raw/master/docs/img/408-pallete-card.png)
+![Jands Event4 Palette Card](https://github.com/hippyau/jands-cardbus/raw/master/docs/img/408-pallete-card.png)
 
-The Jands EVENT4 Palette Card.
+The Jands Event4 Palette Card.
 
 
 Here is a video showing the maunual toggling of bits on the Palette card during development...  [https://vimeo.com/419880334]
@@ -23,11 +23,14 @@ Here is a video showing the maunual toggling of bits on the Palette card during 
 
 ## Important to note 
 
-Not all Jands Card Busses are created equal.  DO NOT directly connect an ESP-II card to a the Event 4 / Echelon series bus (the one I present here), it is a different pinout, but seems to be very similar operation and a simple adapter could be made. [tbc]
+Not all Jands Card Busses are created equal.  DO NOT directly connect an ESP or Stage series card to the Event 4 / Echelon series bus (the one I present here), it is a different pinout, but seems to be very similar operation and a simple adapter could be made. [tbc] 
 
-That there are different pinouts for some different Card Busses, depending on the series of console.  See Issue below.
+It seems there are different pinouts for some different Card Busses, depending on the series of console.  See Issue below.
 https://github.com/hippyau/jands-cardbus/issues/1
-Using the wrong pinout for the card you are working with will potentially damage the card!
+
+The Event 4 and Echelon series are the same pinout, but some card addresses overlap.
+
+Using the wrong pinout for the card you are working with will potentially damage the card and/or master interface!
 
 
 ## Firmware Command Line Interface
