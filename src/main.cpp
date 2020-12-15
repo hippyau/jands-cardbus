@@ -12,7 +12,7 @@
  (c) hippy 2020
 */
 
-#define APP_VERSION  ("0.61 (Event4, Echelon)")
+#define APP_VERSION  ("0.61 (Event4, Echelon 1K)")
 
 // configuration
 
@@ -21,11 +21,11 @@
 // General Debug
 #define TESTING
 #define FADER_TESTING
-//#define TEST_MENUS // testing menu system
+//#define TEST_MENUS // testing menu system  // TODO: Remove
 
 #define SERIAL_CLI_ENABLED // serial command line interface
 
-#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. 
+#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4x. 
 
 // Event 4xx
 #define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
@@ -252,7 +252,8 @@ static SButton buttonPlus(BTN_PLUS);
 static SButton buttonMinus(BTN_MINUS);
 
 static keypad_input Key;
-static unsigned int input_value = 123;
+static unsigned int input_value = 255;
+
 
 
 #if defined(SERIAL_CLI_ENABLED)
@@ -273,8 +274,7 @@ void cmd_help(int arg_cnt, char **args)
   cmdGetStream()->println("set     - select hex bus [address 0x00..0xFF] (aka ALEL) where high nibble is card addres, low nibble is device on the card");
   cmdGetStream()->println("mux     - set a mux [hex address] (aka ALEH) for the currently selected card & device");
   cmdGetStream()->println("write   - select hex bus [address] and write hex [data]");
-  cmdGetStream()->println("read    - read bus at current address, or option [hex address] also selects device ");
-     
+  cmdGetStream()->println("read    - read bus at current address, or option [hex address] also selects device ");   
 }
 
 
