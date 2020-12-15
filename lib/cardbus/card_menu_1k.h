@@ -124,7 +124,7 @@ void menuCard::setContrast(uint8_t val, uint8_t lcd = 0) {
 };
 
 
-// ECHMENU2 IC17 should return %01100001
+// ECHMENU2 IC17 should return ca
 uint8_t menuCard::getCardId(void) {
     selectAddr(card_addr | 0x0F); // Card ID
     card_id = readData();

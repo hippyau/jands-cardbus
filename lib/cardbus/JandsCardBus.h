@@ -75,16 +75,16 @@ public:
   playbackCard playback1;
   playbackCard playback2;
   
-  SKeyboard keys;  
+  SKeyboard keys;  // not harware, rather a key press input processor
+
+  bool halt = false; // if true, update is not allowed.
 
   bool update(); // update all cards  
 };
 
 
-
 // pointer to our entire control surface
 static JandsCardBus * Surface = NULL;
-
 
 
 /* Implementation */
@@ -93,6 +93,8 @@ static JandsCardBus * Surface = NULL;
 // Returns: true on change detected
 bool inline JandsCardBus::update()
 {  
+  if (halt == true) { return false; } // stop updates
+
   static unsigned long lastMillis;  
   unsigned long now = millis();
   bool check_faders_now = 1;

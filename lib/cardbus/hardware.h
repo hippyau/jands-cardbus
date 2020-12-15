@@ -2,7 +2,6 @@
 #define _HARDWARE_H
 
 
-
 // comment out for using arduino pin mapping where, on boards where the data bus is not consective pins (like Leonardo)
 #define NO_PIN_MAPPING // use direct port commands
 
@@ -34,6 +33,61 @@
    Some USB Arduinos don't use these pins, and these are the ones we prefer!
 
 */
+
+// change bus port pin direction
+// accept INPUT or OUTPUT
+// TODO: maintain state and only change as required.
+void inline dirb(int dir);
+
+// write data bus byte
+void inline writed(uint8_t inb);
+// read data bus byte
+uint8_t inline readd();
+
+// write bus control signals
+void inline writec(uint8_t inb);
+
+// mux latch pulse
+void inline clk_mux();
+
+// address latch pulse
+void inline clk_ale();
+
+// device select pulse
+void inline clk_ds();
+
+// device select pulse with delay, primarily for the slow LCD chipset
+void inline clk_ds_lcd();
+
+
+// ----- higher level 
+
+// in order to make multiple writes to same address more efficient in loops, we use this to only
+// latch an address if it has changed since the previous call to selectAddr, otherwise do nothing except change direction
+// note: databus is always left in output state after this call
+void inline selectAddr(uint8_t addr);
+
+// write a byte to the device (at a previously selected address)
+void inline writeData(uint8_t data);
+
+// write a byte to the device at a previously selected address, with a small delay in the clock pulse
+void inline writeDataDelay(uint8_t data);
+
+// write a byte to the device and clock the ALEH (mux) line
+void inline writeMux(uint8_t data);
+
+// flip the data bus direction, select the current device, and read it!
+// always returns with bus in an output configuration
+// RETURN 8-bit value read at current address/device
+uint8_t inline readData();
+
+// register of current/last used address
+static uint16_t reg_last_addr = -1;
+
+
+
+
+/* implementation */
 
 // write data bus byte
 void inline writed(uint8_t inb)
@@ -139,8 +193,6 @@ void inline clk_ds_lcd()
 // note: databus is always left in output state after this call
 void inline selectAddr(uint8_t addr)
 {
-  static uint8_t reg_last_addr;
-
   dirb(OUTPUT); // output to bus
   if (addr != reg_last_addr)
   {               // only select address if not the same as last address selected.
@@ -159,6 +211,11 @@ void inline writeData(uint8_t data)
   clk_ds();
 }
 
+// flip the data bus direction, select the current device address, and read it!
+// always returns with bus in an output configuration
+// RETURN 8-bit value read at current address/device
+uint8_t inline readData();
+
 
 // write a byte to the bus and clock the ALEH (Mux) line
 void inline writeMux(uint8_t data)
@@ -167,14 +224,12 @@ void inline writeMux(uint8_t data)
   clk_mux();
 }
 
-
 // write a byte to the device at a previously selected address, with a small delay in the clock pulse
 void inline writeDataDelay(uint8_t data)
 {
   writed(data);
   clk_ds_lcd();
 }
-
 
 // flip the data bus direction, select the current device, and read it!
 // always returns with bus in an output configuration
