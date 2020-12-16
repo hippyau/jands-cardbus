@@ -74,7 +74,7 @@ public:
   menuCard menu2;
   playbackCard playback1;
   playbackCard playback2;
-  
+
   SKeyboard keys;  // not harware, rather a key press input processor
 
   bool halt = false; // if true, update is not allowed.
@@ -274,7 +274,7 @@ bool inline JandsCardBus::update()
     i+=b;
     for ( b = 0 ; b < 2 ; b++) // fifth byte 32-33
      sbuttons[i+b] = playback2.buttons[4] & (1 << b);
-    i+=b;
+//    i+=b;
 
  
   }

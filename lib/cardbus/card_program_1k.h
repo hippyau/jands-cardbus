@@ -120,7 +120,7 @@ bool programCard::update()
   buttons[9] = readData();        // read 8 buttons
   writeData(leds[1]);             // write 8 LEDS
   selectAddr(card_addr | 0x0F); // LED7 / ENC1 - encoder 3
-  writeData(leds[2]);             // write 8 LEDS
+  //writeData(leds[2]);             // write 8 LEDS
   
   // encoder wheels
   wheels[2] = 0x0f & buttons[9];//readData(); // top 4 bits are card ID, ignore

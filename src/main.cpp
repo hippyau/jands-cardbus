@@ -16,18 +16,20 @@
 
 // configuration
 
-//#define USE_ETHERNET
+#define USE_ETHERNET
+
+#define SERIAL_CLI_ENABLED // serial command line interface
+#define SERIAL_CLI_BUSCONTROL // commands to manipulate the card bus
+
+#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
+
 
 // General Debug
 #define TESTING
 #define FADER_TESTING
 
 
-#define SERIAL_CLI_ENABLED // serial command line interface
-
-#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
-
-// Event 4xx
+// Event 4xx card testing code is embedded in each card class
 #define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
 #define PRESET_LEDS_TESTING (true)     // LED's mimic faders
 #define MASTER_CARD_TESTING (true)     // display info on the master card LCD
@@ -37,8 +39,9 @@
 #define PLAYBACK_1K_CARD_TESTING (true)
 #define MENU_1K_CARD_TESTING (true)
 
-// CardBus driver
+
 #include <JandsCardBus.h>
+
 
 #if defined(USE_ETHERNET)
 #include <SPI.h>
@@ -50,6 +53,9 @@ static uint16_t localPort = 8888;                            // Port to listen o
 static IPAddress ip(192, 168, 1, 88);                        // Our IP address
 static IPAddress trg(192, 168, 1, 49);                       // Where we are sending to
 static EthernetUDP Udp;
+static bool eth0_up = false;                                 // update / use the ethernet interface
+static uint32_t eth0_stats_tx = 0;                           // bytes
+static uint32_t eth0_stats_rx = 0;            
 #endif
 
 
@@ -66,17 +72,14 @@ static EthernetUDP Udp;
 #include "surface_cmd_line.h" 
 #endif
 
-#if defined(TEST_MENUS)
-// pointer to our menu system
-static LiquidMenu *Menu;
-#endif
+
 
 // send surface state packet to host(s)
 void inline sendSurfaceState()
 {
 
 #ifdef USE_ETHERNET
-
+ if (eth0_up) {
   // construct UDP frame with all the surface values
   Udp.beginPacket(trg, 8888);
   Udp.write("JCB0"); // header
@@ -107,7 +110,11 @@ void inline sendSurfaceState()
   for (uint8_t cnt = 0; cnt < 3; cnt++)
     Udp.write(Surface->master.wheels[cnt]);
 
+  eth0_stats_tx += Udp.availableForWrite();
+
   Udp.endPacket(); // send frame
+ }
+
 #endif
 }
 
@@ -116,6 +123,7 @@ void hostSetSurfaceState()
 {
 
 #if defined(USE_ETHERNET)
+if (eth0_up){
   static char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
   static int packetSize;
   static IPAddress remote;
@@ -200,8 +208,10 @@ void hostSetSurfaceState()
       //Serial.println("Contents:");
       //Serial.println(packetBuffer);
     }
+    eth0_stats_rx += packetSize;
   }
 
+} // eth0_up is trus
 #endif
 }
 
@@ -228,24 +238,32 @@ static unsigned int input_value = 255;
 
 void cmd_help(int arg_cnt, char **args)
 {
-  cmdGetStream()->println("Available commands: (command with arguments provide usage help when no arguments given)");
+  cmdGetStream()->println("Available commands: (commands with arguments provide usage help when no arguments given)");
   cmdGetStream()->println();
-  cmdGetStream()->println("version - print firmware version");
-  cmdGetStream()->println("run     - enable cardbus update loop");
-  cmdGetStream()->println("stop    - disable cardbus update loop");
-  cmdGetStream()->println("stat    - print cardbus statistics");
-  cmdGetStream()->println("reboot  - reboot");        
+  cmdGetStream()->println("version  - print firmware version");
+  cmdGetStream()->println("run      - enable cardbus update loop");
+  cmdGetStream()->println("stop     - disable cardbus update loop");
+  cmdGetStream()->println("stat     - print cardbus statistics");
+
+#if defined (USE_ETHERNET)  
+  cmdGetStream()->println("ifconfig - configure ethernet adapter [up]/[down]/[ip address] or [target]+[ip address](+[port])");
+#endif
+
+  cmdGetStream()->println("reboot   - reboot");        
   cmdGetStream()->println();
 
+#if defined (SERIAL_CLI_BUSCONTROL)
   cmdGetStream()->println("Debug commands:");
   cmdGetStream()->println();
-  cmdGetStream()->println("set     - select hex bus [address 0x00..0xFF] (aka ALEL) where high nibble is card addres, low nibble is device on the card");
-  cmdGetStream()->println("mux     - set a mux [hex address] (aka ALEH) for the currently selected card & device");
-  cmdGetStream()->println("write   - select hex bus [address] and write hex [data]");
-  cmdGetStream()->println("read    - read bus at current address, or option [hex address] also selects device ");   
+  cmdGetStream()->println("set      - select hex bus [address 0x00..0xFF] (aka ALEL) where high nibble is card addres, low nibble is device on the card");
+  cmdGetStream()->println("mux      - set a mux [hex address] (aka ALEH) for the currently selected card & device");
+  cmdGetStream()->println("write    - select hex bus [address] and write hex [data]");
+  cmdGetStream()->println("read     - read bus at current address, or option [hex address] also selects device ");   
+#endif  
 }
 
 
+#if defined (SERIAL_CLI_BUSCONTROL)
 // ----  bus control CLI
 
 // warning that other code is playing with the bus addresses...
@@ -287,7 +305,7 @@ void cmd_buswrite(int arg_cnt, char **args) {
 
   uint8_t data = strtol(args[1], NULL, 16);
 
-  if (arg_cnt < 2) {  
+  if (arg_cnt <= 1) {  
     s->printf("Write 0x%02X @ 0x%02X\n",data, reg_last_addr);
     writeData(data);
     return;
@@ -362,8 +380,9 @@ void cmd_set(int arg_cnt, char **args) {
  selectAddr(addr);
  
  s->printf("set: selected @ 0x%02X\n", reg_last_addr);  
- 
 }
+#endif
+
 
 // print some stats
 void cmd_stat(int arg_cnt, char **args){
@@ -396,6 +415,40 @@ void cmd_run(int arg_cnt, char **args){
   s->println("Surface updates resumed.");  
 }
 
+
+#if defined (USE_ETHERNET)
+void cmd_ifconfig(int arg_cnt, char **args){
+
+  Stream *s = cmdGetStream();
+  if (arg_cnt == 1){
+    s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up ? "UP":"DOWN");
+    s->printf("       MAC: %02X:%02X:%02X:%02X:%02X:%02X\t tx: %d bytes\trx: %d bytes\n", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], eth0_stats_tx, eth0_stats_rx);
+    return;    
+  }
+
+  if (arg_cnt >= 2){
+    // arg 2 is ip address, or "up" or "down" or "target" in which case arg 3 is ip address of target and optional arg 4 is udp port
+
+    if (args[2] == "up") {
+      eth0_up = true;
+    } else if (args[2] == "down"){
+      eth0_up = false;
+    } else if (args[2] == "target"){
+      // args 3 is target ip address
+      trg.fromString(args[3]);
+      if (arg_cnt > 3){ 
+       localPort = atoi(args[4]);
+      }
+    } else {
+      // args 2 is interface ip address
+      ip.fromString(args[2]);
+      Ethernet.begin(mac,ip);
+    }  
+  }
+}
+#endif
+
+
 #endif // SERIAL_CLI_ENABLED
 
 
@@ -416,16 +469,14 @@ void setup()
   while (Serial.read() >= 0)
     ; // flush serial input buffers
 
-  for (int c = 0; c < 14; c++)
-    // setup pins as outputs
-    pinMode(c, OUTPUT);
+  for (int c = 0; c < 14; c++)    
+    pinMode(c, OUTPUT);// setup pins as outputs
 
 #ifdef USE_ETHERNET
-    Ethernet.begin(mac, ip);
-    Udp.begin(localPort);
-    delay(100);
+  Ethernet.begin(mac, ip);
+  Udp.begin(localPort);    
+  delay(100);
 #endif
-
 
 #if defined(SERIAL_CLI_ENABLED)
   cmdInit(&Serial);
@@ -442,6 +493,10 @@ void setup()
   cmdAdd("write",cmd_buswrite);
   cmdAdd("read",cmd_busread);
   cmdAdd("mux",cmd_busmux);
+
+#if defined (USE_ETHERNET)
+  cmdAdd("ifconfig",cmd_ifconfig);
+#endif  
 
 #endif
 

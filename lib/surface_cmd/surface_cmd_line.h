@@ -70,7 +70,7 @@ void remove_last_keyword(String &cmd)
 }
 
 // compare last commane line entry to keyword, return true if same;
-bool compare_last_keyword(const String cmd, String keyword)
+bool compare_last_keyword(const String cmd, const String keyword)
 {
   int lio = cmd.trim().lastIndexOf(" ");
   if (lio < 0)
