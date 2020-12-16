@@ -21,11 +21,11 @@
 // General Debug
 #define TESTING
 #define FADER_TESTING
-//#define TEST_MENUS // testing menu system  // TODO: Remove
+
 
 #define SERIAL_CLI_ENABLED // serial command line interface
 
-#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4x. 
+#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
 
 // Event 4xx
 #define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
@@ -52,10 +52,7 @@ static IPAddress trg(192, 168, 1, 49);                       // Where we are sen
 static EthernetUDP Udp;
 #endif
 
-#if defined(TEST_MENUS)
-//  Menu system
-#include "LiquidMenu.h"
-#endif
+
 
 #if defined(TESTING)
 #include "debug.h"
@@ -211,36 +208,7 @@ void hostSetSurfaceState()
 static uint8_t val = 0;
 static uint8_t val2 = 0;
 
-#if defined(TEST_MENUS)
-// menu system
-/*
- * LiquidLine objects represent a single line of text and/or variables
- * on the display. The first two parameters are the column and row from
- * which the line starts, the rest of the parameters are the text and/or
- * variables that will be printed on the display. They can be up to four.
- */
-// Here the line is set to column 1, row 0 and will print the passed
-// string and the passed variable.
-LiquidLine welcome_line1(1, 0, "Jands CardBus Control Surface ", "V0.2");
-// Here the column is 3, the row is 1 and the string is "Hello Menu".
-LiquidLine welcome_line2(3, 1, "Setup");
 
-/*
- * LiquidScreen objects represent a single screen. A screen is made of
- * one or more LiquidLine objects. Up to four LiquidLine objects can
- * be inserted from here, but more can be added later in setup() using
- * welcome_screen.add_line(someLine_object);.
- */
-// Here the LiquidLine objects are the two objects from above.
-LiquidScreen welcome_screen(welcome_line1, welcome_line2);
-
-// Here there is not only a text string but also a changing integer variable.
-LiquidLine analogReading_line(0, 0, "Analog: 1 ", val);
-LiquidLine analogReading_line2(0, 1, "Analog: 2 ", val2);
-LiquidLine analogReading_line3(0, 2, "Analog: 2 ", val2);
-
-LiquidScreen secondary_screen(analogReading_line, analogReading_line2, analogReading_line3);
-#endif
 
 // modifier 'Shift' button is down?
 #define buttonShift (_sbuttons[BTN_SHIFT])
@@ -539,12 +507,7 @@ void setup()
     Surface->keys._usb_key[167] = 'a';
   }
 
-#if defined(TEST_MENUS)
-  // master menu assigned to master card LCD
-  Menu = new LiquidMenu(Surface->master.lcd);
-  Menu->add_screen(welcome_screen);
-  Menu->add_screen(secondary_screen);
-#endif
+
 
   Key.edit(&Surface->assign.lcd, (char *)"Channel", &input_value, 1024, 0, 0);
 }
@@ -586,33 +549,7 @@ void loop()
   //    Key.input(&Surface->assign.lcd, (char*)"Level", 0, 0 );
   //}
 
-#if defined(TEST_MENUS)
-  if (buttonRight.check())
-  {
-    Menu->next_screen();
-    Menu->update();
-  }
 
-  if (buttonLeft.check())
-  {
-    Menu->previous_screen();
-    Menu->update();
-  }
-
-  if (buttonPlus.check())
-  {
-    Menu->switch_focus(1);
-    //Menu->call_function(1);
-    Menu->update();
-  }
-
-  if (buttonMinus.check())
-  {
-    Menu->switch_focus(0);
-    //Menu->call_function(2);
-    Menu->update();
-  }
-#endif
 
 // update the serial command line interface
 #if defined(SERIAL_CLI_ENABLED)
