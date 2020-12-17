@@ -421,7 +421,7 @@ void cmd_ifconfig(int arg_cnt, char **args){
 
   Stream *s = cmdGetStream();
   if (arg_cnt == 1){
-    s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up ? "UP":"DOWN");
+    s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up == true ? "UP":"DOWN");
     s->printf("       MAC: %02X:%02X:%02X:%02X:%02X:%02X\t tx: %d bytes\trx: %d bytes\n", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], eth0_stats_tx, eth0_stats_rx);
     return;    
   }
@@ -429,20 +429,26 @@ void cmd_ifconfig(int arg_cnt, char **args){
   if (arg_cnt >= 2){
     // arg 2 is ip address, or "up" or "down" or "target" in which case arg 3 is ip address of target and optional arg 4 is udp port
 
-    if (args[2] == "up") {
+    String arg1(args[1]);
+
+    if (arg1 == "up") {
       eth0_up = true;
-    } else if (args[2] == "down"){
+      s->println("eth0: up.");
+    } else if (arg1 == "down"){
       eth0_up = false;
-    } else if (args[2] == "target"){
-      // args 3 is target ip address
-      trg.fromString(args[3]);
+      s->println("eth0: down.");
+    } else if (arg1 == "target"){      
+      // args 2 is target ip address
+      trg.fromString(String(args[2]));
       if (arg_cnt > 3){ 
-       localPort = atoi(args[4]);
+       localPort = atoi(args[3]); // arg 3 is port (optional)
       }
+      s->printf("eth0:  target: %d.%d.%d.%d:%d\n", trg[0],trg[1],trg[2],trg[3], localPort);
     } else {
-      // args 2 is interface ip address
-      ip.fromString(args[2]);
-      Ethernet.begin(mac,ip);
+      // args 1 is interface ip address
+      ip.fromString(arg1);
+      s->printf("eth0:  ip: %d.%d.%d.%d\n",  ip[0],ip[1],ip[2],ip[3]);
+      Ethernet.begin(mac,ip);      
     }  
   }
 }
