@@ -15,7 +15,6 @@ Event 408
 52-91 = master card...
 91-167 = program card
 
-
 */
 
 
@@ -93,21 +92,21 @@ Event 408
 
 // Echelon 1K Program Card
 
-#define BTN_TRYCUE      92 // S1 led
-#define BTN_EFFECT      93 // S2 led
+#define BTN_TRYCUE      92 // S1 led 
+#define BTN_EFFECT      93 // S2 led 1 green
 #define BTN_HIGHLIGHT   94 // S3 led
-#define BTN_MONITOR     95 // S4 led
+#define BTN_MONITOR     95 // S4 led 0 red
 #define BTN_BLIND       96 // S5 led
 #define BTN_BEGIN       97 // S6
 #define BTN_CLEARRESTORE 98 // S7 led
 #define BTN_PIG_RIGHT    99 // S8
 
 #define BTN_COPY        100 // S9
-#define BTN_ACTIVE      101 // S10 led
+#define BTN_ACTIVE      101 // S10 led 3
 #define BTN_MOVE        102 // S11
 #define BTN_LOAD        103 // S12
 #define BTN_DELETE      104 // S13
-#define BTN_UPDATE      105 // S14 led
+#define BTN_UPDATE      105 // S14 led 2 0xFD 0x04
 #define BTN_UNDO        106 // S15
 #define BTN_RECORD      107 // S16 
 

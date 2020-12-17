@@ -295,7 +295,7 @@ void cmd_buswrite(int arg_cnt, char **args) {
   if (Surface->halt == false) cmd_warn_bus_running();
 
   Stream *s = cmdGetStream();
-  if (arg_cnt < 3){
+  if (arg_cnt < 2){
     s->println("Usage: write [hex data] [hex address] - write data to a bus address");
     s->println("       if [hex address] is not specified, last selected is used");
     return;    
@@ -303,7 +303,7 @@ void cmd_buswrite(int arg_cnt, char **args) {
 
   uint8_t data = strtol(args[1], NULL, 16);
 
-  if (arg_cnt <= 1) {  
+  if (arg_cnt <= 2) {  
     s->printf("Write 0x%02X @ 0x%02X\n",data, reg_last_addr);
     writeData(data);
     return;
