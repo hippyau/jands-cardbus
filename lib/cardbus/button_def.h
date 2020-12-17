@@ -1,7 +1,11 @@
 #pragma once
 
+
 /*
-Surface Button Definitions - based on a Event 408
+Surface Button Definitions
+
+
+Event 408
 
 0-11  = preset card 1
 12-24 = preset card 2
@@ -10,12 +14,16 @@ Surface Button Definitions - based on a Event 408
 
 52-91 = master card...
 91-167 = program card
+
+
 */
 
 
                   // Event4 + Echelon 1K
 #define TOTAL_BUTTONS   168 + 144
 
+
+// Event 4xx
 
 // Master Card Buttons
 #define BTN_EXIT        76
@@ -81,6 +89,112 @@ Surface Button Definitions - based on a Event 408
 #define BTN_SOFT3       62
 #define BTN_SOFT4       63
 #define BTN_SOFT5       64
+
+
+// Echelon 1K Program Card
+
+#define BTN_TRYCUE      92 // S1 led
+#define BTN_EFFECT      93 // S2 led
+#define BTN_HIGHLIGHT   94 // S3 led
+#define BTN_MONITOR     95 // S4 led
+#define BTN_BLIND       96 // S5 led
+#define BTN_BEGIN       97 // S6
+#define BTN_CLEARRESTORE 98 // S7 led
+#define BTN_PIG_RIGHT    99 // S8
+
+#define BTN_COPY        100 // S9
+#define BTN_ACTIVE      101 // S10 led
+#define BTN_MOVE        102 // S11
+#define BTN_LOAD        103 // S12
+#define BTN_DELETE      104 // S13
+#define BTN_UPDATE      105 // S14 led
+#define BTN_UNDO        106 // S15
+#define BTN_RECORD      107 // S16 
+
+#define BTN_BLANK1      108 // S17
+#define BTN_MACRO       109 // S18
+#define BTN_TIME        110 // S19
+#define BTN_PAGE        111 // S20
+#define BTN_ARROW_ARROW_LEFT 112 // S21
+#define BTN_CUE         113 // S22
+#define BTN_SETUP       114 // S23
+#define BTN_BLANK2      115 // S24
+#define BTN_GROUP       116 // S25 led
+#define BTN_BACKSPACE   117 // S26
+#define BTN_POSITION    118 // S27 led
+#define BTN_BACKSLASH   119 // S28
+#define BTN_COLOUR      120 // S29 led
+#define BTN_MINUS       121 // S30
+#define BTN_BEAM        122 // S31 led
+#define BTN_PLUS        123 // S32
+#define BTN_7           124 // S33
+#define BTN_4           125 // S34
+#define BTN_8           126 // S35
+#define BTN_5           127 // S36
+#define BTN_9           128 // S37
+#define BTN_6           129 // S38
+#define BTN_THRU        130 // S39
+#define BTN_FULL        131 // S40
+#define BTN_1           132 // S41
+#define BTN_0           133 // S42
+#define BTN_2           134 // S43
+#define BTN_DOT         135 // S44
+#define BTN_3           136 // S45
+#define BTN_ENTER       137 // S46  S77
+
+#define BTN_L_BLANK     139 // S48
+
+#define BTN_LEFT_ARROW  140 // S49
+#define BTN_LEFT_UP     141 // S50
+#define BTN_DOWN_ARROW  142 // S51
+#define BTN_RIGHT_ARROW 143 // S52
+
+#define BTN_END         144 // S53
+#define BTN_UP_UP_ARROW 145 // S54
+#define BTN_DN_DN_ARROW 146 // S55
+#define BTN_SET         147 // S56
+
+#define BTN_L_RELEASE  148 // S57
+#define BTN_L_GO_FWD   149 // S58
+#define BTN_L_GO_BACK  150 // S59
+#define BTN_L_GOTO     151 // S60
+
+#define BTN_NEXT       152 // S61
+#define BTN_L_PIG      153 // S62
+
+#define BTN_MENUS      153 // S63 led
+
+#define BTN_LIST       155 // S64
+#define BTN_TOPSOFT1   156 // S65
+#define BTN_TOPSOFT2   157 // S66
+#define BTN_TOPSOFT3   158 // S67
+#define BTN_TOPSOFT4   159 // S68
+#define BTN_TOPSOFT5   160 // S69
+
+#define BTN_BOTSOFT1   161 // S70
+#define BTN_BOTSOFT1   162 // S71
+#define BTN_BOTSOFT1   163 // S72
+// S73 ?
+#define BTN_ARROW_ARROW_RIGHT   165 // S74
+#define BTN_BOTSOFT1   166 // S75
+#define BTN_BOTSOFT1   167 // S76
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
