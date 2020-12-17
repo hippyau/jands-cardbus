@@ -161,7 +161,7 @@ bool menuCard::update()
 
   // look for button changes
   bool fc = false;
-  for (uint8_t n = 0; n < 5; n++)
+  for (uint8_t n = 0; n < 4; n++)
   {
     if (buttons[n] != obuttons[n])
       {

@@ -29,7 +29,7 @@
     Please post support questions to the FreakLabs forum.
 *******************************************************************/
 /*!
-    \file Cmd.c
+    \file Cmd.cpp
     This implements a simple command line interface for the Arduino so that
     its possible to execute individual functions within the sketch.
 */
