@@ -18,7 +18,7 @@ This is a hack job, not nice c++, it's arduino based.... but it works!
 The Jands Event4 Palette Card.
 
 
-Here is a video showing the maunual toggling of bits on the Palette card during development...  [https://vimeo.com/419880334]
+Here is a video showing the manual toggling of bits on the Palette card during development...  [https://vimeo.com/419880334]
 
 
 ## Important to note 
