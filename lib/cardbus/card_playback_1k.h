@@ -54,11 +54,11 @@ bool playbackCard::init(uint8_t nAddr) {
     getCardId();
     if (card_id == 0b01100010){
 #if defined(PLAYBACK_1K_CARD_TESTING)
-      Serial.printf("Found Playback Card @ 0x%02X\n",card_addr);
+      Serial.printf("Found Playback Card @ 0x%02X\n\r",card_addr);
       detected = true;
 #endif        
     } else {
-      Serial.printf("Not Found - Playback Card @ 0x%02X\n",card_addr);
+      Serial.printf("Not Found - Playback Card @ 0x%02X\n\r",card_addr);
       detected = false;
       return detected; 
     }
@@ -116,9 +116,9 @@ uint8_t playbackCard::read_card_mux_fader(uint8_t mux, uint8_t cnt){
   for (uint8_t c2 = 0; c2 < 3 ; c2++){
 #endif      
     writeMux(mux + cnt);    
-    selectAddr(card_addr | 0x04);  // adc start conversion
+    selectAddr(card_addr | 0x02);  // adc start conversion
     clk_ds();
-    selectAddr(card_addr | 0x05);  // adc read
+    selectAddr(card_addr | 0x03);  // adc read
 #if defined(FADER_AVERAGING)       
     avg[c2] = readData();
     delayMicroseconds(FADER_AVERAGING_DELAY);
@@ -174,7 +174,7 @@ bool playbackCard::update(bool check_faders_now = true)
   // read 8 faders.,,
       for (uint8_t cnt = 0; cnt < 8; cnt++)
     {
-      faders[cnt] = read_card_mux_fader(0x40,cnt);
+      faders[cnt] = read_card_mux_fader(0x00,cnt);
 
 #if defined (FADER_FILTERING)    
     if ((ofaders[cnt] == 0) & (faders[cnt] == 1)){

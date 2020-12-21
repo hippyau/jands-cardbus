@@ -50,14 +50,19 @@
 #define UDP_TX_PACKET_MAX_SIZE 256                           //increase UDP size to 256 bytes
 static uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED}; // Our MAC address
 static uint16_t localPort = 8888;                            // Port to listen on
-static IPAddress ip(192, 168, 1, 88);                        // Our IP address
-static IPAddress trg(192, 168, 1, 49);                       // Where we are sending to
+
+//static IPAddress ip(192, 168, 1, 88);                        // Our IP address
+//static IPAddress trg(192, 168, 1, 49);                       // Where we are sending to
+
+static IPAddress ip(169, 254, 1, 2);                        // Our IP address -- 169.254.254.1 is host, 2..254 are possible surfaces
+static IPAddress trg(169, 254, 1, 1);                       // host Where we are sending to
+
+
 static EthernetUDP Udp;
 static bool eth0_up = false;                                 // update / use the ethernet interface
 static uint32_t eth0_stats_tx = 0;                           // bytes
 static uint32_t eth0_stats_rx = 0;            
 #endif
-
 
 
 #if defined(TESTING)
@@ -83,6 +88,7 @@ void inline sendSurfaceState()
   // construct UDP frame with all the surface values
   Udp.beginPacket(trg, 8888);
   Udp.write("JCB0"); // header
+  uint16_t tx_bytes = 80; // TODO: Fix this!
 
   // faders x 64 bytes
   for (uint8_t cnt = 0; cnt < 24; cnt++)
@@ -110,7 +116,7 @@ void inline sendSurfaceState()
   for (uint8_t cnt = 0; cnt < 3; cnt++)
     Udp.write(Surface->master.wheels[cnt]);
 
-  eth0_stats_tx += Udp.availableForWrite();
+  eth0_stats_tx += tx_bytes;
 
   Udp.endPacket(); // send frame
  }
@@ -247,7 +253,8 @@ void cmd_help(int arg_cnt, char **args)
 #if defined (USE_ETHERNET)  
   cmdGetStream()->println("ifconfig - configure ethernet adapter [up]/[down]/[ip address] or [target]+[ip address](+[port])");
 #endif
-  cmdGetStream()->println("reboot   - reboot");        
+  cmdGetStream()->println("restart  - restart firmware");        
+  cmdGetStream()->println("bootload - enter programming mode");        
 
 #if defined (SERIAL_CLI_BUSCONTROL)
   cmdGetStream()->println();
@@ -304,14 +311,14 @@ void cmd_buswrite(int arg_cnt, char **args) {
   uint8_t data = strtol(args[1], NULL, 16);
 
   if (arg_cnt <= 2) {  
-    s->printf("Write 0x%02X @ 0x%02X\n",data, reg_last_addr);
+    s->printf("Write 0x%02X @ 0x%02X\n\r",data, reg_last_addr);
     writeData(data);
     return;
   }
 
   uint8_t addr = strtol(args[2], NULL, 16);
   
-  s->printf("Write 0x%02X @ 0x%02X\n", data, addr);
+  s->printf("Write 0x%02X @ 0x%02X\n\r", data, addr);
   selectAddr(addr);
   writeData(data);
 }
@@ -328,7 +335,7 @@ void cmd_busmux(int arg_cnt, char **args) {
   }
   uint8_t data = strtol(args[1], NULL, 16);
   
-  s->printf("mux 0x%02X @ 0x%02X\n",data, reg_last_addr);
+  s->printf("mux 0x%02X @ 0x%02X\n\r",data, reg_last_addr);
 
   writeMux(data);
 
@@ -340,14 +347,14 @@ void cmd_busread(int arg_cnt, char **args) {
 
   Stream *s = cmdGetStream();
   if (arg_cnt == 1){
-    s->printf("read: 0x%02X @ 0x%02X\n", readData(), reg_last_addr);  
+    s->printf("read: 0x%02X @ 0x%02X\n\r", readData(), reg_last_addr);  
     return;    
   }
 
  if (arg_cnt == 2){
     uint8_t addr = strtol(args[1], NULL, 16);
     selectAddr(addr);
-    s->printf("read: 0x%02X @ 0x%02X\n", readData(), reg_last_addr);  
+    s->printf("read: 0x%02X @ 0x%02X\n\r", readData(), reg_last_addr);  
     return;    
  }
 
@@ -364,7 +371,7 @@ void cmd_set(int arg_cnt, char **args) {
   Stream *s = cmdGetStream();
 
   if (arg_cnt == 1){
-    s->printf("set: @ 0x%02X\n", reg_last_addr);  
+    s->printf("set: @ 0x%02X\n\r", reg_last_addr);  
     return;    
   }
 
@@ -377,7 +384,7 @@ void cmd_set(int arg_cnt, char **args) {
  reg_last_addr = !addr;
  selectAddr(addr);
  
- s->printf("set: selected @ 0x%02X\n", reg_last_addr);  
+ s->printf("set: selected @ 0x%02X\n\r", reg_last_addr);  
 }
 #endif
 
@@ -392,12 +399,20 @@ void cmd_stat(int arg_cnt, char **args){
 #endif
 }
 
+// restart teensy
+void cmd_restart(int arg_cnt, char **args){
+  Stream *s = cmdGetStream();
+  s->println("Soft Reboot...");  
+  _restart_Teensyduino_();  
+}
+
 // reboot teensy
 void cmd_reboot(int arg_cnt, char **args){
   Stream *s = cmdGetStream();
   s->println("Soft Reboot...");  
-  _restart_Teensyduino_();
+  _reboot_Teensyduino_();  
 }
+
 
 // stop updates
 void cmd_stop(int arg_cnt, char **args){
@@ -419,8 +434,8 @@ void cmd_ifconfig(int arg_cnt, char **args){
 
   Stream *s = cmdGetStream();
   if (arg_cnt == 1){
-    s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up == true ? "UP":"DOWN");
-    s->printf("       MAC: %02X:%02X:%02X:%02X:%02X:%02X\t tx: %d bytes\trx: %d bytes\n", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], eth0_stats_tx, eth0_stats_rx);
+    s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n\r",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up == true ? "UP":"DOWN");
+    s->printf("       MAC: %02X:%02X:%02X:%02X:%02X:%02X\t tx: %d bytes\trx: %d bytes\n\r", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], eth0_stats_tx, eth0_stats_rx);
     return;    
   }
 
@@ -441,11 +456,11 @@ void cmd_ifconfig(int arg_cnt, char **args){
       if (arg_cnt > 3){ 
        localPort = atoi(args[3]); // arg 3 is port (optional)
       }
-      s->printf("eth0:  target: %d.%d.%d.%d:%d\n", trg[0],trg[1],trg[2],trg[3], localPort);
+      s->printf("eth0:  target: %d.%d.%d.%d:%d\n\r", trg[0],trg[1],trg[2],trg[3], localPort);
     } else {
       // args 1 is interface ip address
       ip.fromString(arg1);
-      s->printf("eth0:  ip: %d.%d.%d.%d\n",  ip[0],ip[1],ip[2],ip[3]);
+      s->printf("eth0:  ip: %d.%d.%d.%d\n\r",  ip[0],ip[1],ip[2],ip[3]);
       Ethernet.begin(mac,ip);      
     }  
   }
@@ -489,8 +504,9 @@ void setup()
   cmdAdd("stat",cmd_stat);    
   cmdAdd("version", [](int argc, char **argv){ Stream *s=cmdGetStream(); s->print("Version "); s->println(APP_VERSION); });
   cmdAdd("uptime", [](int argc, char **argv){ Stream *s=cmdGetStream(); s->print("Uptime: "); s->print(millis());s->println("ms"); });
+  cmdAdd("restart",cmd_restart);
+  cmdAdd("bootload",cmd_reboot);
 
-  cmdAdd("reboot",cmd_reboot);
 #if defined (USE_ETHERNET)
   cmdAdd("ifconfig",cmd_ifconfig);
 #endif  
@@ -517,6 +533,7 @@ void setup()
   Surface->playback1.init(ADDR_PLAYBACK_1_1K);
   Surface->playback2.init(ADDR_PLAYBACK_2_1K);
   Surface->program.init(ADDR_PROGRAM_1K);
+
 
   // map 1K program card keys to USB-HID keyboard
   if (Surface->program.detected)

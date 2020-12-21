@@ -58,11 +58,11 @@ bool programCard::init(uint8_t nAddr) {
     getCardId();
     if (card_id == 0b01100011){
 #if defined(PROGRAM_1K_CARD_TESTING)
-      Serial.printf("Found ECHPROG4 Card @ 0x%02X\n",card_addr);
+      Serial.printf("Found ECHPROG4 Card @ 0x%02X\n\r",card_addr);
       detected = true;
 #endif        
     } else {
-      Serial.printf("Not Found - Program Card @ 0x%02X\n",card_addr);
+      Serial.printf("Not Found - Program Card @ 0x%02X\n\r",card_addr);
       detected = false;
       return detected; 
     }

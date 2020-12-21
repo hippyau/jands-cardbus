@@ -54,11 +54,11 @@ bool menuCard::init(uint8_t nAddr) {
     getCardId();
     if (card_id == 0b01100001){
 #if defined(MENU_1K_CARD_TESTING)
-      Serial.printf("Found ECHMENU2 Card @ 0x%02X\n",card_addr);
+      Serial.printf("Found ECHMENU2 Card @ 0x%02X\n\r",card_addr);
       detected = true;
 #endif        
     } else {
-      Serial.printf("Not Found ECHMENU2 Card @ 0x%02X\n",card_addr);
+      Serial.printf("Not Found ECHMENU2 Card @ 0x%02X\n\r",card_addr);
       detected = false;
       return detected; 
     }
