@@ -581,8 +581,6 @@ void setup()
     Surface->keys._usb_key[167] = 'a';
   }
 
-
-
   Key.edit(&Surface->assign.lcd, (char *)"Channel", &input_value, 1024, 0, 0);
 }
 
@@ -612,8 +610,8 @@ void loop()
   // testing keypad input
   while (Surface->keys.isKeyAvailable())
   {
-    uint8_t keyp = Surface->keys.getKey();
-    Serial.printf("Key: %i\n", (int)keyp);
+    uint16_t keyp = Surface->keys.getKey();
+    Serial.printf("Key: %i\n\r", (int)keyp);
     SurfaceCmdLine(keyp);
   }
 

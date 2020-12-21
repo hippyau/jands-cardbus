@@ -16,7 +16,7 @@ static uint16_t sbuttons[TOTAL_BUTTONS];
 // Surface Button, press detection with debounce 
 class SButton {
 public:
-	SButton (uint8_t sbutton_number, uint16_t debounceDelay = 0)
+	SButton (uint16_t sbutton_number, uint16_t debounceDelay = 0)
 		{
      _sbutton = sbutton_number;
      _lastDebounceTime = _lastMillis = 0;
@@ -29,7 +29,8 @@ public:
 
 
 private:
-	uint8_t _sbutton, _state, _lastState;
+	uint16_t _sbutton;
+  uint8_t _state, _lastState;
   uint16_t _debounceDelay;
 	uint32_t _lastMillis, _lastDebounceTime;
 
@@ -75,7 +76,7 @@ class SKeyboard {
      uint16_t _usb_key[TOTAL_BUTTONS] = {0};
 #endif
     private:
-     uint8_t laststate[TOTAL_BUTTONS];
+     uint16_t laststate[TOTAL_BUTTONS];
      FIFO keyQueue;   
 };
 

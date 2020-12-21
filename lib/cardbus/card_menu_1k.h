@@ -179,9 +179,9 @@ bool menuCard::update()
         
     if (fc)
     {    
-        lcd[0].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
-        lcd[1].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
-        Serial.printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
+        lcd[0].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
+        lcd[1].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
+        Serial.printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
     }
 #endif
  
