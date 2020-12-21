@@ -68,7 +68,7 @@ class SKeyboard {
      void update();
 
      bool isKeyAvailable() { return (keyQueue.size() > 0); };
-     uint8_t getKey() { return keyQueue.pop(); };
+     uint16_t getKey() { return keyQueue.pop(); };
      void flush() { while (keyQueue.size()) keyQueue.pop(); };
 
 #ifdef USB_KEYBOARD
