@@ -34,6 +34,18 @@
 
 */
 
+
+
+namespace CARD_TYPES {
+  constexpr uint8_t MENU_CARD =     0b01100001;  // Echelon 1K Menu Card
+  constexpr uint8_t PLAYBACK_CARD = 0b01100010;  // Echelon 1K Playback Card  
+  constexpr uint8_t PROGRAM_CARD =  0b01100011;  // Echelon 1K Program Card
+}
+
+
+
+
+
 // change bus port pin direction
 // accept INPUT or OUTPUT
 // TODO: maintain state and only change as required.

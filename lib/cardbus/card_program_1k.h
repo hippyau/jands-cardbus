@@ -56,7 +56,7 @@ bool programCard::init(uint8_t nAddr) {
     setCardAddress(nAddr);
     detected = false;
     getCardId();
-    if (card_id == 0b01100011){
+    if (card_id == CARD_TYPES::PROGRAM_CARD){
 #if defined(PROGRAM_1K_CARD_TESTING)
       Serial.printf("Found ECHPROG4 Card @ 0x%02X\n\r",card_addr);
       detected = true;
@@ -93,7 +93,7 @@ uint8_t programCard::getCardId(void) {
 bool programCard::update()
 {
   if (!detected) {
-    return;  // card is not present, don't update...
+    return false;  // card is not present, don't update...
   }
 
   // buttons and LEDS
@@ -158,7 +158,7 @@ bool programCard::update()
     
     if (fc)
     {      
-        Serial.printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x 5B=0x%x 6B=0x%x 7B=0x%x 8B=0x%x 9B=0x%x W1=0x%x W2=0x%x W3=0x%x \n ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4], buttons[5], buttons[6], buttons[7],buttons[8], buttons[9], wheels[0], wheels[1], wheels[2]);      
+        Serial.printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x 5B=0x%x 6B=0x%x 7B=0x%x 8B=0x%x 9B=0x%x W1=0x%x W2=0x%x W3=0x%x\n\r ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4], buttons[5], buttons[6], buttons[7],buttons[8], buttons[9], wheels[0], wheels[1], wheels[2]);      
     }
 #endif
  

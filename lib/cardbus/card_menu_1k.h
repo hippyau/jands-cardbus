@@ -9,11 +9,8 @@
 
 
 /*
-
-Echelon MENU Card
-                                                                                                                                                                                                               
+  Echelon MENU Card                                                                                                                                                                                                           
 */
-
 
 #define MENU_1K_DEFAULT_CONSTRAST   (0x08)
 
@@ -52,7 +49,7 @@ bool menuCard::init(uint8_t nAddr) {
     setCardAddress(nAddr);
     detected = false;
     getCardId();
-    if (card_id == 0b01100001){
+    if (card_id == CARD_TYPES::MENU_CARD){
 #if defined(MENU_1K_CARD_TESTING)
       Serial.printf("Found ECHMENU2 Card @ 0x%02X\n\r",card_addr);
       detected = true;
@@ -161,7 +158,7 @@ bool menuCard::update()
 
   // look for button changes
   bool fc = false;
-  for (uint8_t n = 0; n < 4; n++)
+  for (uint8_t n = 0; n < 5; n++)
   {
     if (buttons[n] != obuttons[n])
       {
@@ -178,10 +175,11 @@ bool menuCard::update()
     leds[3] = buttons[3];
         
     if (fc)
-    {    
-        lcd[0].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
-        lcd[1].printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r ", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);        
-        Serial.printf("0B=0x%x 1B=0x%x 2B=0x%x 3B=0x%x 4B=0x%x\n\r", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
+    {   
+        lcd[0].setCursor(0,1); 
+        lcd[0].printf("0x%3x 0x%3x 0x%3x 0x%3x 0x%3x", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);  
+                      
+        Serial.printf("B0=0x%2x B1=0x%2x B2=0x%2x B3=0x%2x B4=0x%2x\n\r", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
     }
 #endif
  

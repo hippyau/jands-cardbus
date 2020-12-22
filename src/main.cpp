@@ -249,6 +249,7 @@ void cmd_help(int arg_cnt, char **args)
   cmdGetStream()->println("version  - print firmware version");
   cmdGetStream()->println("run      - enable cardbus update loop");
   cmdGetStream()->println("stop     - disable cardbus update loop");
+  cmdGetStream()->println("scan     - scan bus for cards");
   cmdGetStream()->println("stat     - print cardbus statistics");
 #if defined (USE_ETHERNET)  
   cmdGetStream()->println("ifconfig - configure ethernet adapter [up]/[down]/[ip address] or [target]+[ip address](+[port])");
@@ -265,6 +266,21 @@ void cmd_help(int arg_cnt, char **args)
   cmdGetStream()->println("write    - select hex bus [address] and write hex [data]");
   cmdGetStream()->println("read     - read bus at current address, or option [hex address] also selects device ");   
 #endif  
+}
+
+// warning that other code is playing with the bus addresses...
+void cmd_scan_bus() {
+  cmdGetStream()->println("Card Bus Scan: ");
+  uint8_t cntr;
+  for (uint8_t cnt = 0; cnt < 16 ; cnt ++){
+    uint8_t addr = (cnt << 4) | 0x0F;
+    selectAddr(addr);
+    uint8_t result = readData();
+    if (addr == result) continue; 
+    cmdGetStream()->printf("\tCard type %2x @ %2x\n\r", result, (cnt << 4));
+    cntr++;
+  }
+  cmdGetStream()->printf("Scan complete, %i cards found.\n\r", cntr);
 }
 
 
@@ -500,8 +516,9 @@ void setup()
   cmdInit(&Serial); // use default Serial. device
   cmdAdd("help", cmd_help);
   cmdAdd("run", cmd_run);
-  cmdAdd("stop", cmd_stop);    
-  cmdAdd("stat",cmd_stat);    
+  cmdAdd("stop", cmd_stop); 
+  cmdAdd("scan", cmd_scan_bus);   
+  cmdAdd("stat", cmd_stat);    
   cmdAdd("version", [](int argc, char **argv){ Stream *s=cmdGetStream(); s->print("Version "); s->println(APP_VERSION); });
   cmdAdd("uptime", [](int argc, char **argv){ Stream *s=cmdGetStream(); s->print("Uptime: "); s->print(millis());s->println("ms"); });
   cmdAdd("restart",cmd_restart);
@@ -620,8 +637,6 @@ void loop()
   //    //Key.edit(&Surface->assign.lcd, (char*)"Level: ", &input_value, 1024, 0, line );
   //    Key.input(&Surface->assign.lcd, (char*)"Level", 0, 0 );
   //}
-
-
 
 // update the serial command line interface
 #if defined(SERIAL_CLI_ENABLED)
