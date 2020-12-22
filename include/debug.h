@@ -4,7 +4,9 @@
 
 
 // count loops per second, print to serial
-static unsigned int UpdatesPerSecond;
+static unsigned int UpdatesPerSecond = 0;
+static unsigned int UpdatesPerSecondMin = 1000;
+static unsigned int UpdatesPerSecondMax = 0;
   
 
 static inline void fps(const unsigned int seconds = 1){
@@ -13,8 +15,10 @@ static inline void fps(const unsigned int seconds = 1){
     
   unsigned long now = millis();
   frameCount ++;
-  if ((now - lastMillis) >= seconds * 1000) {
-    UpdatesPerSecond = frameCount / seconds;
+  if ((now - lastMillis) >= seconds * 1000) {          
+      UpdatesPerSecond = frameCount / seconds;
+      if (UpdatesPerSecondMin > UpdatesPerSecond) UpdatesPerSecondMin = UpdatesPerSecond;      
+      if (UpdatesPerSecondMax < UpdatesPerSecond) UpdatesPerSecondMax = UpdatesPerSecond;
 #if !defined(SERIAL_CLI_ENABLED)
     Serial.println(UpdatesPerSecond);
 #endif

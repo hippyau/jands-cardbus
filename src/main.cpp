@@ -12,17 +12,19 @@
  (c) hippy 2020
 */
 
-#define APP_VERSION  ("0.61 (Event4, Echelon 1K)")
-
 // configuration
 
 #define DEBUG_TESTING  // confirm surface without a host
+
+
+#define APP_VERSION  ("0.63 (Echelon 1K)")
 
 
 // ONLY DEFINE ONE OF THESE
 #define CONFIG_ECHELON_1K  // use the Jands Echelon 1k surface, as manufactured
 //#define CONFIG_EVENT_408   // use the Jands Event 408 surface, as manufactured
 //#define CONFIG_CUSTOM    // future: use a mix/mash custom surface
+
 
 
 #define USE_ETHERNET  // Wiznet Ethernet SPI device
@@ -512,8 +514,13 @@ void cmd_stat(int arg_cnt, char **args){
   Stream *s = cmdGetStream();
   s->println("Stats: ");
 #if defined (TESTING)
-  s->print("  Card Bus Updates/Second: ");
+  s->print("  Card Bus Updates Now (hz): ");
   s->println(UpdatesPerSecond);
+  s->print("  Card Bus Updates Min (hz): ");
+  s->println(UpdatesPerSecondMin);
+  s->print("  Card Bus Updates Max (hz): ");
+  s->println(UpdatesPerSecondMax);
+
 #endif
 }
 
