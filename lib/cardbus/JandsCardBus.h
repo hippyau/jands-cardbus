@@ -111,8 +111,8 @@ bool inline JandsCardBus::update()
 
   static unsigned long lastMillis;  
   unsigned long now = millis();
-  bool check_faders_now = 1;
 
+  bool check_faders_now = 1;
   if ((now - lastMillis) >= FADER_POLL_SPEED) {  // poll faders on occasion, every 6ms
     check_faders_now = 1;  
     lastMillis = now;
@@ -136,6 +136,7 @@ bool inline JandsCardBus::update()
   fc += playback2.update(check_faders_now); 
 #endif
 
+
   if (fc) {
     // pull buttons from individual bits out to an array
 
@@ -145,23 +146,23 @@ bool inline JandsCardBus::update()
     // preset card 1 buttons 1-12
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = preset1.buttons[0] & (1 << b);
-    i+=b;
+    i+=b; //
     for ( b = 0 ; b < 4 ; b++) // second byte, first nibble
      sbuttons[i+b] = preset1.buttons[1] & (1 << b);
-    i+=b;
+    i+=b; // 
 
     // preset card 2 buttons 1-12
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = preset2.buttons[0] & (1 << b);
-    i+=b;
+    i+=b; // 
     for ( b = 0 ; b < 4 ; b++) // second byte, first nibble
      sbuttons[i+b] = preset2.buttons[1] & (1 << b);
-    i+=b;
-      
+    i+=b; // 
+  
     // assign card buttons 1-8
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = assign.buttons[0] & (1 << b);
-    i+=b;
+    i+=b; // 
    
     // palette card buttons 1-20
     for ( b = 0 ; b < 8 ; b++) // first byte
@@ -193,7 +194,7 @@ bool inline JandsCardBus::update()
 #endif
 
 #if defined (CONFIG_ECHELON_1K) 
-    i = 168;
+    i = 92;
  // program card buttons 1-76
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = program.buttons[0] & (1 << b);
@@ -225,7 +226,7 @@ bool inline JandsCardBus::update()
     for ( b = 0 ; b < 4 ; b++) // tenth byte 70 - 73
      sbuttons[i+b] = program.buttons[9] & (1 << b);
     i+=b;    
-    
+
  // menu card 1 buttons 1-36
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = menu1.buttons[0] & (1 << b);

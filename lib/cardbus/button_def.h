@@ -13,17 +13,23 @@ Event 408
 32-51 = palette card 
 
 52-91 = master card...
-91-167 = program card
 
+
+91-167 = program card
 
 
 */
                   // Event4 + Echelon 1K
-#define TOTAL_BUTTONS   168 + 144 
+#define TOTAL_BUTTONS   (168 + 144)
 
 
 // Event 4xx
 #if defined (CONFIG_EVENT_408)
+
+#define BUTTONS_START  (0)
+#define BUTTONS_END    (BUTTONS_START + 168)
+
+
 // Master Card Buttons
 #define BTN_EXIT        76
 #define BTN_RECORD      78
@@ -93,6 +99,9 @@ Event 408
 
 
 #if defined (CONFIG_ECHELON_1K)
+
+#define BUTTONS_START  (92)
+#define BUTTONS_END    (BUTTONS_START + 144)
 
 // Echelon 1K Program Card
 
