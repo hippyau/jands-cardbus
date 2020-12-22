@@ -82,7 +82,7 @@ class SKeyboard {
 
 
 void SKeyboard::update(){
-    for (uint16_t cnt = 0 ; cnt < TOTAL_BUTTONS ; cnt++) {
+    for (uint16_t cnt = BUTTONS_START ; cnt < BUTTONS_END ; cnt++) {
      
       if ((laststate[cnt] != 0) & (sbuttons[cnt] == 0)) {
        keyQueue.push(cnt);  // released

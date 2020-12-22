@@ -112,7 +112,7 @@ void inline sendSurfaceState()
 
 #if defined (CONFIG_EVENT_408)
   // construct UDP frame with all the surface values for an Event408
-  Udp.beginPacket(trg, 8888);
+  Udp.beginPacket(trg, localPort);
   Udp.write("JCB0"); // header
   uint16_t tx_bytes = 80; // TODO: Fix this!
 
@@ -150,9 +150,9 @@ void inline sendSurfaceState()
 
 #if defined (CONFIG_ECHELON_1K)
   // construct UDP frame with all the surface values for an Echelon 1K
-  Udp.beginPacket(trg, 8888);
+  Udp.beginPacket(trg, localPort);
   Udp.write("JCB1"); // header
-  uint16_t tx_bytes = 0; // TODO: Fix this!
+  uint16_t tx_bytes = 0;
 
   // faders x 17 
   for (uint8_t cnt = 0; cnt < 8; cnt++) { 
@@ -196,7 +196,6 @@ void inline sendSurfaceState()
     Udp.write(Surface->program.buttons[cnt]);
     tx_bytes += 1;
   }
-
 
   // wheels x 3 - up/down counters 0x00 -- 0x0F
   for (uint8_t cnt = 0; cnt < 3; cnt++) {
@@ -313,31 +312,33 @@ if (eth0_up){
     eth0_stats_rx += packetSize;
   }
 
-
-
 } // eth0_up is trus
 #endif
 }
 
-static uint8_t val = 0;
-static uint8_t val2 = 0;
+
+#if defined(FADER_TESTING)
+  #if defined(CONFIG_EVENT_408)
+  static uint8_t val = 0;
+  static uint8_t val2 = 0;
+ #endif
+#endif 
 
 
 
-// modifier 'Shift' button is down?
-#define buttonShift (_sbuttons[BTN_SHIFT])
 
 #if defined (CONFIG_EVENT_408)
+// modifier 'Shift' button is down?
+#define buttonShift (_sbuttons[BTN_SHIFT])
 static SButton buttonSetup(BTN_Setup);
 static SButton buttonLeft(BTN_LEFT);
 static SButton buttonRight(BTN_RIGHT);
-#endif
 static SButton buttonPlus(BTN_PLUS);
 static SButton buttonMinus(BTN_MINUS);
 
-
 static keypad_input Key;
-static unsigned int input_value = 255;
+static unsigned int input_value = -1;
+#endif
 
 
 
@@ -588,6 +589,8 @@ void cmd_ifconfig(int arg_cnt, char **args){
 
 
 
+
+
 /*
 ███████╗███████╗████████╗██╗   ██╗██████╗ 
 ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
@@ -624,7 +627,6 @@ void setup()
   cmdAdd("uptime", [](int argc, char **argv){ Stream *s=cmdGetStream(); s->print("Uptime: "); s->print(millis());s->println("ms"); });
   cmdAdd("restart",cmd_restart);
   cmdAdd("bootload",cmd_reboot);
-
 #if defined (USE_ETHERNET)
   cmdAdd("ifconfig",cmd_ifconfig);
 #endif  
@@ -639,7 +641,8 @@ void setup()
 
 
   Surface = new JandsCardBus(); // create out new surface class
-    
+
+
 #if defined (CONFIG_EVENT_408)
   Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
   Surface->preset2.setCardAddress(ADDR_PRESET_2);

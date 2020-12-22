@@ -194,7 +194,7 @@ bool inline JandsCardBus::update()
 #endif
 
 #if defined (CONFIG_ECHELON_1K) 
-    i = 92;
+    i = 92; //167;
  // program card buttons 1-76
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = program.buttons[0] & (1 << b);

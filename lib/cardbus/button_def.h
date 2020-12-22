@@ -101,7 +101,7 @@ Event 408
 #if defined (CONFIG_ECHELON_1K)
 
 #define BUTTONS_START  (92)
-#define BUTTONS_END    (BUTTONS_START + 144)
+#define BUTTONS_END    (168)
 
 // Echelon 1K Program Card
 
