@@ -44,7 +44,7 @@ private:
   uint8_t owheels[3];
 
   // ECHPROG4 IC7 should return %01100011
-  uint8_t programCard::getCardId(void);
+  uint8_t getCardId(void);
 
 };
 

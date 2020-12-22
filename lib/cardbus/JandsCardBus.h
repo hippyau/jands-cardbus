@@ -28,19 +28,22 @@
 // Default Card Addresses
 
 // - Event 408
+#if defined (CONFIG_EVENT_408)
 #define ADDR_PRESET_1 (0x00)
 #define ADDR_PRESET_2 (0x10)
 #define ADDR_MASTER   (0x80)
 #define ADDR_PALETTE  (0x90)
 #define ADDR_ASSIGN   (0xC0)
+#endif
 
+#if defined (CONFIG_ECHELON_1K)
 // - Echelon 1K
 #define ADDR_PROGRAM_1K (0xF0) // program card, only one allowed, always 0xF0
 #define ADDR_MENU_1_1K (0x00) // menu card 0
 #define ADDR_MENU_2_1K (0x10) // menu card 1
 #define ADDR_PLAYBACK_1_1K (0x80) // playback card 1
 #define ADDR_PLAYBACK_2_1K (0x90) // playback card 2
-
+#endif
 
 // hardware bus driver routines
 #include "hardware.h"
@@ -52,34 +55,45 @@
 #include "keypad_input.h"
 
 // individual card drivers
+#if defined (CONFIG_EVENT_408)
 #include "card_preset.h"
 #include "card_palette.h"
 #include "card_assign.h"
 #include "card_master.h"
+#endif
+
+#if defined (CONFIG_ECHELON_1K)
 #include "card_program_1k.h"
 #include "card_menu_1k.h"
 #include "card_playback_1k.h"
+#endif
 
 // the whole control surface
 class JandsCardBus
 {
 public:
+
+  bool update(); // update all cards  
+
+#if defined (CONFIG_EVENT_408)
   presetCard preset1;
   presetCard preset2;
   paletteCard palette;
   assignCard assign;
   masterCard master;
+#endif 
+
+#if defined (CONFIG_ECHELON_1K) 
   programCard program;
   menuCard menu1;
   menuCard menu2;
   playbackCard playback1;
   playbackCard playback2;
+#endif
 
   SKeyboard keys;  // not harware, rather a key press input processor
 
   bool halt = false; // if true, update is not allowed.
-
-  bool update(); // update all cards  
 };
 
 
@@ -106,26 +120,28 @@ bool inline JandsCardBus::update()
 
   uint8_t fc = 0;
   
-  /* 
+  #if defined (CONFIG_EVENT_408) 
   fc += preset1.update(check_faders_now);
   fc += preset2.update(check_faders_now);
   fc += assign.update(check_faders_now);
   fc += master.update(check_faders_now);
   fc += palette.update();
- */  
+ #endif   
 
-  // Jands Echelon 1K cards
+ #if defined (CONFIG_ECHELON_1K) 
   fc += program.update();
   fc += menu1.update();
   fc += menu2.update();
   fc += playback1.update(check_faders_now); 
   fc += playback2.update(check_faders_now); 
+#endif
 
   if (fc) {
     // pull buttons from individual bits out to an array
 
-    uint8_t i = 0, b = 0;
-    
+    uint16_t i = 0, b = 0;
+
+  #if defined (CONFIG_EVENT_408) 
     // preset card 1 buttons 1-12
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = preset1.buttons[0] & (1 << b);
@@ -173,8 +189,11 @@ bool inline JandsCardBus::update()
     i+=b;
     for ( b = 0 ; b < 8 ; b++) // fifth byte 32-37
      sbuttons[i+b] = master.buttons[4] & (1 << b);
-    i+=b;
+//    i+=b;
+#endif
 
+#if defined (CONFIG_ECHELON_1K) 
+    i = 168;
  // program card buttons 1-76
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = program.buttons[0] & (1 << b);
@@ -206,8 +225,7 @@ bool inline JandsCardBus::update()
     for ( b = 0 ; b < 4 ; b++) // tenth byte 70 - 73
      sbuttons[i+b] = program.buttons[9] & (1 << b);
     i+=b;    
-  
-
+    
  // menu card 1 buttons 1-36
     for ( b = 0 ; b < 8 ; b++) // first byte
      sbuttons[i+b] = menu1.buttons[0] & (1 << b);
@@ -275,11 +293,9 @@ bool inline JandsCardBus::update()
     for ( b = 0 ; b < 2 ; b++) // fifth byte 32-33
      sbuttons[i+b] = playback2.buttons[4] & (1 << b);
 //    i+=b;
-
+#endif
  
   }
-
-
 
    // update the keyboard queue
   keys.update();

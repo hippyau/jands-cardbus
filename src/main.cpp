@@ -21,7 +21,11 @@
 #define SERIAL_CLI_ENABLED // serial command line interface
 #define SERIAL_CLI_BUSCONTROL // commands to manipulate the card bus
 
-#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
+
+// ONLY DEFINE ONE OF THESE
+#define CONFIG_ECHELON_1K  // use the echelon 1k surface, as manufactured
+//#define CONFIG_EVENT_408   // use the Event408 surface, as manufactured
+//#define CONFIG_CUSTOM    // future: use a mix/mash custom surface
 
 
 // General Debug
@@ -29,15 +33,25 @@
 #define FADER_TESTING
 
 
+#if defined (CONFIG_EVENT_408)
 // Event 4xx card testing code is embedded in each card class
 #define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
 #define PRESET_LEDS_TESTING (true)     // LED's mimic faders
 #define MASTER_CARD_TESTING (true)     // display info on the master card LCD
+#endif
 
+#if defined (CONFIG_ECHELON_1K)
 // Echelon 1K
 #define PROGRAM_1K_CARD_TESTING (true)
 #define PLAYBACK_1K_CARD_TESTING (true)
 #define MENU_1K_CARD_TESTING (true)
+#endif
+
+
+#if defined (CONFIG_EVENT_408)
+#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
+#endif
+
 
 
 #include <JandsCardBus.h>
@@ -85,7 +99,9 @@ void inline sendSurfaceState()
 
 #ifdef USE_ETHERNET
  if (eth0_up) {
-  // construct UDP frame with all the surface values
+
+#if defined (CONFIG_EVENT_408)
+  // construct UDP frame with all the surface values for an Event408
   Udp.beginPacket(trg, 8888);
   Udp.write("JCB0"); // header
   uint16_t tx_bytes = 80; // TODO: Fix this!
@@ -120,6 +136,70 @@ void inline sendSurfaceState()
 
   Udp.endPacket(); // send frame
  }
+#endif
+
+#if defined (CONFIG_ECHELON_1K)
+  // construct UDP frame with all the surface values for an Echelon 1K
+  Udp.beginPacket(trg, 8888);
+  Udp.write("JCB1"); // header
+  uint16_t tx_bytes = 0; // TODO: Fix this!
+
+  // faders x 17 
+  for (uint8_t cnt = 0; cnt < 8; cnt++) { 
+    Udp.write(Surface->playback1.faders[cnt]);
+    tx_bytes += 1;
+  }
+  for (uint8_t cnt = 0; cnt < 8; cnt++) {
+    Udp.write(Surface->playback2.faders[cnt]);
+    tx_bytes += 1;
+  }
+  Udp.write(Surface->playback1.faders[9]); // grand master
+  tx_bytes += 1;
+
+
+  // buttons x 5 bytes  
+  for (uint8_t cnt = 0; cnt < 5; cnt++) {
+    Udp.write(Surface->playback1.buttons[cnt]);
+    tx_bytes += 1;
+  }
+
+  // buttons x 5 bytes  
+  for (uint8_t cnt = 0; cnt < 5; cnt++) {
+    Udp.write(Surface->playback2.buttons[cnt]);
+    tx_bytes += 1;
+  }
+
+  // buttons x 5 bytes  
+  for (uint8_t cnt = 0; cnt < 5; cnt++) {
+    Udp.write(Surface->menu1.buttons[cnt]);
+    tx_bytes += 1;
+  }
+
+  // buttons x 5 bytes  
+  for (uint8_t cnt = 0; cnt < 5; cnt++) {
+    Udp.write(Surface->menu2.buttons[cnt]);
+    tx_bytes += 1;
+  }
+
+  // buttons x 10 bytes  
+  for (uint8_t cnt = 0; cnt < 10; cnt++) {
+    Udp.write(Surface->program.buttons[cnt]);
+    tx_bytes += 1;
+  }
+
+
+  // wheels x 3 - up/down counters 0x00 -- 0x0F
+  for (uint8_t cnt = 0; cnt < 3; cnt++) {
+    Udp.write(Surface->program.wheels[cnt]);
+    tx_bytes += 1;
+  }
+
+  eth0_stats_tx += tx_bytes;
+
+  Udp.endPacket(); // send frame
+ }
+#endif
+
 
 #endif
 }
@@ -130,6 +210,7 @@ void hostSetSurfaceState()
 
 #if defined(USE_ETHERNET)
 if (eth0_up){
+
   static char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
   static int packetSize;
   static IPAddress remote;
@@ -156,6 +237,8 @@ if (eth0_up){
     // read the packet into packetBufffer
     Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
 
+
+#if defined (CONFIG_EVENT_408)
     if (strcmp(packetBuffer, "JCBL") == 0)
     {
       // legit LED packet
@@ -209,13 +292,18 @@ if (eth0_up){
         default:
           break;
         }
-      };
 
+    };
       //Serial.println("Contents:");
       //Serial.println(packetBuffer);
     }
+#endif
+
+
     eth0_stats_rx += packetSize;
   }
+
+
 
 } // eth0_up is trus
 #endif
@@ -229,11 +317,14 @@ static uint8_t val2 = 0;
 // modifier 'Shift' button is down?
 #define buttonShift (_sbuttons[BTN_SHIFT])
 
+#if defined (CONFIG_EVENT_408)
 static SButton buttonSetup(BTN_Setup);
 static SButton buttonLeft(BTN_LEFT);
 static SButton buttonRight(BTN_RIGHT);
+#endif
 static SButton buttonPlus(BTN_PLUS);
 static SButton buttonMinus(BTN_MINUS);
+
 
 static keypad_input Key;
 static unsigned int input_value = 255;
@@ -268,10 +359,10 @@ void cmd_help(int arg_cnt, char **args)
 #endif  
 }
 
-// warning that other code is playing with the bus addresses...
-void cmd_scan_bus() {
+// Scan the card bus for cards, high nibble is card address, low nibble is 0x0F (card ID)
+void cmd_scan_bus(int arg_cnt, char **args) {
   cmdGetStream()->println("Card Bus Scan: ");
-  uint8_t cntr;
+  uint8_t cntr = 0;
   for (uint8_t cnt = 0; cnt < 16 ; cnt ++){
     uint8_t addr = (cnt << 4) | 0x0F;
     selectAddr(addr);
@@ -280,7 +371,7 @@ void cmd_scan_bus() {
     cmdGetStream()->printf("\tCard type %2x @ %2x\n\r", result, (cnt << 4));
     cntr++;
   }
-  cmdGetStream()->printf("Scan complete, %i cards found.\n\r", cntr);
+  cmdGetStream()->printf("Scan complete, %d cards found.\n\r", cntr);
 }
 
 
@@ -538,19 +629,19 @@ void setup()
 
 
   Surface = new JandsCardBus(); // create out new surface class
-  // configure surface
+    
+#if defined (CONFIG_EVENT_408)
+  Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
+  Surface->preset2.setCardAddress(ADDR_PRESET_2);
+#endif
 
-  //  Event 408
-  //  Surface->preset1.setCardAddress(ADDR_PRESET_1);  // discriminate two preset cards by address
-  //  Surface->preset2.setCardAddress(ADDR_PRESET_2);
 
-  // Echelon 1K -- detect and initialize cards
+#if defined (CONFIG_ECHELON_1K)
   Surface->menu1.init(ADDR_MENU_1_1K);
   Surface->menu2.init(ADDR_MENU_2_1K);
   Surface->playback1.init(ADDR_PLAYBACK_1_1K);
   Surface->playback2.init(ADDR_PLAYBACK_2_1K);
   Surface->program.init(ADDR_PROGRAM_1K);
-
 
   // map 1K program card keys to USB-HID keyboard
   if (Surface->program.detected)
@@ -598,7 +689,14 @@ void setup()
     Surface->keys._usb_key[167] = 'a';
   }
 
+#endif
+
+
+#if defined (CONFIG_EVENT_408)
   Key.edit(&Surface->assign.lcd, (char *)"Channel", &input_value, 1024, 0, 0);
+#endif
+
+
 }
 
 
@@ -629,7 +727,11 @@ void loop()
   {
     uint16_t keyp = Surface->keys.getKey();
     Serial.printf("Key: %i\n\r", (int)keyp);
+
+#if defined (SURFACE_CLI_ENABLED)
     SurfaceCmdLine(keyp);
+#endif     
+
   }
 
   //if (Key.check()){ // enter or exit pressed
@@ -647,8 +749,10 @@ void loop()
   fps(); // measure updates per second
 
 #if defined(FADER_TESTING)
-  val = Surface->preset1.faders[0];
-  val2 = Surface->preset1.faders[2];
+  #if defined(CONFIG_EVENT_408)
+    val = Surface->preset1.faders[0];
+    val2 = Surface->preset1.faders[2];
+  #endif
 #endif
 
 #endif

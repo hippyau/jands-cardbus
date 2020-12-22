@@ -15,15 +15,15 @@ Event 408
 52-91 = master card...
 91-167 = program card
 
+
+
 */
-
-
                   // Event4 + Echelon 1K
-#define TOTAL_BUTTONS   168 + 144
+#define TOTAL_BUTTONS   168 + 144 
 
 
 // Event 4xx
-
+#if defined (CONFIG_EVENT_408)
 // Master Card Buttons
 #define BTN_EXIT        76
 #define BTN_RECORD      78
@@ -89,6 +89,10 @@ Event 408
 #define BTN_SOFT4       63
 #define BTN_SOFT5       64
 
+#endif 
+
+
+#if defined (CONFIG_ECHELON_1K)
 
 // Echelon 1K Program Card
 
@@ -171,31 +175,11 @@ Event 408
 #define BTN_TOPSOFT5   160 // S69
 
 #define BTN_BOTSOFT1   161 // S70
-#define BTN_BOTSOFT1   162 // S71
-#define BTN_BOTSOFT1   163 // S72
+#define BTN_BOTSOFT2   162 // S71
+#define BTN_BOTSOFT3   163 // S72
 // S73 ?
 #define BTN_ARROW_ARROW_RIGHT   165 // S74
-#define BTN_BOTSOFT1   166 // S75
-#define BTN_BOTSOFT1   167 // S76
+#define BTN_BOTSOFT4   166 // S75
+#define BTN_BOTSOFT5   167 // S76
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif 

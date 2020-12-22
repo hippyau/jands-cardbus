@@ -193,7 +193,11 @@ void keypad_input::key(uint8_t pressed){
         } else
 
         // cancel editing
+#if defined (CONFIG_EVENT_408)        
         if (pressed == BTN_EXIT) {
+#elif defined (CONFIG_ECHELON_1K)
+        if (pressed == BTN_CLEARRESTORE) {
+#endif                
            if (edit_mode) {
             edval = orig_value;
            }                     

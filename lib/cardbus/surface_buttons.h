@@ -83,9 +83,9 @@ class SKeyboard {
 
 void SKeyboard::update(){
     for (uint16_t cnt = 0 ; cnt < TOTAL_BUTTONS ; cnt++) {
-      
+     
       if ((laststate[cnt] != 0) & (sbuttons[cnt] == 0)) {
-       keyQueue.push(cnt); 
+       keyQueue.push(cnt);  // released
       }
 
 #ifdef USB_KEYBOARD

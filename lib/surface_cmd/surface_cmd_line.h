@@ -434,7 +434,10 @@ void SurfaceCmdLine(uint8_t key)
 
   last_button = key;
 
+
   // update display
+
+  
   Surface->assign.lcd.setCursor(0, 0);
   Surface->assign.lcd.print("                                        ");
   Surface->assign.lcd.setCursor(0, 0);
