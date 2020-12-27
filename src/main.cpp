@@ -13,59 +13,9 @@
 */
 
 // configuration
-
-#define DEBUG_TESTING  // confirm surface without a host
-
-
-#define APP_VERSION  ("0.63 (Echelon 1K)")
-
-
-// ONLY DEFINE ONE OF THESE
-#define CONFIG_ECHELON_1K  // use the Jands Echelon 1k surface, as manufactured
-//#define CONFIG_EVENT_408   // use the Jands Event 408 surface, as manufactured
-//#define CONFIG_CUSTOM    // future: use a mix/mash custom surface
-
-
-
-#define USE_ETHERNET  // Wiznet Ethernet SPI device
-
-#define SERIAL_CLI_ENABLED // serial/uart/usb command line interface 
-
-#if defined (SERIAL_CLI_ENABLED)
-  #define SERIAL_CLI_BUSCONTROL // enable serial commands to manipulate the card bus
-#endif
-
-
-#if defined (DEBUG_TESTING)
-  // General Debug
-  #define TESTING
-  #define FADER_TESTING
-#endif
-
-
-
-#if defined (CONFIG_EVENT_408)
-// Event 4xx card testing code is embedded in each card class
-#define ASSIGN_CARD_LCD_TESTING (true) // fader values on LCD line 1
-#define PRESET_LEDS_TESTING (true)     // LED's mimic faders
-#define MASTER_CARD_TESTING (true)     // display info on the master card LCD
-
-#define SURFACE_CLI_ENABLED // use the keys on the surface and form a command line interface. Currently only Event4xx. 
-#endif
-
-
-#if defined (CONFIG_ECHELON_1K)
-// Echelon 1K
-#define PROGRAM_1K_CARD_TESTING (true)
-#define PLAYBACK_1K_CARD_TESTING (true)
-#define MENU_1K_CARD_TESTING (true)
-#endif
-
-
+#include "config.h"
 
 #include <JandsCardBus.h>
-
-
 
 #if defined(USE_ETHERNET)
 #include <SPI.h>
@@ -75,12 +25,10 @@
 static uint8_t mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED}; // Our MAC address
 static uint16_t localPort = 8888;                            // Port to listen on
 
-//static IPAddress ip(192, 168, 1, 88);                        // Our IP address
-//static IPAddress trg(192, 168, 1, 49);                       // Where we are sending to
-
-static IPAddress ip(169, 254, 1, 2);                        // Our IP address -- 169.254.254.1 is host, 2..254 are possible surfaces
-static IPAddress trg(169, 254, 1, 1);                       // host Where we are sending to
-
+static IPAddress ip(192, 168, 1, 190);                        // Our IP address
+static IPAddress trg(192, 168, 1, 255);                       // Where we are sending to
+//static IPAddress ip(169, 254, 1, 2);                        // Our IP address -- 169.254.254.1 is host, 2..254 are possible surfaces
+//static IPAddress trg(169, 254, 1, 1);                       // host Where we are sending to
 
 static EthernetUDP Udp;
 static bool eth0_up = false;                                 // update / use the ethernet interface
@@ -101,6 +49,11 @@ static uint32_t eth0_stats_rx = 0;
 #include "surface_cmd_line.h" 
 #endif
 
+#if defined (MA_MSC_UDP)
+#include "MA_MSC_UDP_.h"
+static maMSC_t maMSC;
+
+#endif
 
 
 
@@ -209,11 +162,34 @@ void inline sendSurfaceState()
 
   Udp.endPacket(); // send frame
  }
+
+
+
 #endif
 
 
-#endif
+
+
+#endif // USE_ETHERNET
 }
+
+
+// send updates from the update queue to the host.
+void hostUpdate(){
+
+#if defined (USE_ETHERNET)
+
+#if defined (MA_MSC_UDP)
+  eth0_stats_tx += maMSC.Send_Fader_Value(1,1,Surface->playback1.faders[0]);
+#endif
+
+#endif
+
+
+}
+
+
+
 
 // take input from host(s)
 void hostSetSurfaceState()
@@ -555,6 +531,22 @@ void cmd_run(int arg_cnt, char **args){
 
 
 #if defined (USE_ETHERNET)
+
+
+// execute when going up or IP
+void eth0_going_up(){
+      eth0_up = true;
+      Ethernet.begin(mac,ip);   
+
+#if defined(MA_MSC_UDP) 
+        char ipstr[16];
+        sprintf((char*)&ipstr,"%d.%d.%d.%d",trg[0],trg[1],trg[2],trg[3]);
+        maMSC.init(ipstr);   
+#endif      
+
+}
+
+
 void cmd_ifconfig(int arg_cnt, char **args){
 
   Stream *s = cmdGetStream();
@@ -570,23 +562,33 @@ void cmd_ifconfig(int arg_cnt, char **args){
     String arg1(args[1]);
 
     if (arg1 == "up") {
-      eth0_up = true;
-      s->println("eth0: up.");
-    } else if (arg1 == "down"){
+      
+      eth0_going_up(); // go up
+      if (eth0_up == true){      
+        s->println("eth0: up.");
+      } else {
+        s->println("eth0: down.");
+      }
+
+    } else if (arg1 == "down") {
       eth0_up = false;
       s->println("eth0: down.");
-    } else if (arg1 == "target"){      
+
+
+    } else if (arg1 == "target") {      
       // args 2 is target ip address
       trg.fromString(String(args[2]));
       if (arg_cnt > 3){ 
        localPort = atoi(args[3]); // arg 3 is port (optional)
       }
       s->printf("eth0:  target: %d.%d.%d.%d:%d\n\r", trg[0],trg[1],trg[2],trg[3], localPort);
+      eth0_going_up(); // change
+
     } else {
       // args 1 is interface ip address
       ip.fromString(arg1);
       s->printf("eth0:  ip: %d.%d.%d.%d\n\r",  ip[0],ip[1],ip[2],ip[3]);
-      Ethernet.begin(mac,ip);      
+      eth0_going_up(); // change    
     }  
   }
 }
@@ -619,9 +621,18 @@ void setup()
 
 #ifdef USE_ETHERNET
   Ethernet.begin(mac, ip);
-  Udp.begin(localPort);    
-  delay(100);
+  Udp.begin(localPort);  
+
+#if defined (MA_MSC_UDP)
+  char ipstr[16];
+  sprintf((char*)&ipstr,"%d.%d.%d.%d",trg[0],trg[1],trg[2],trg[3]);
+  maMSC.init(ipstr); // configure the MSC sender
 #endif
+
+#endif
+
+
+
 
 #if defined(SERIAL_CLI_ENABLED)
   cmdInit(&Serial); // use default Serial. device
@@ -636,6 +647,7 @@ void setup()
   cmdAdd("bootload",cmd_reboot);
 #if defined (USE_ETHERNET)
   cmdAdd("ifconfig",cmd_ifconfig);
+  cmdAdd("if",cmd_ifconfig); // shortcut
 #endif  
 #if defined (SERIAL_CLI_BUSCONTROL)
   cmdAdd("dirb",cmd_dirb);
@@ -736,7 +748,8 @@ void loop()
   // update surface,  send whole state if there is a change
   if (Surface->update())
   {
-    sendSurfaceState(); // has something on the surface changed?
+    sendSurfaceState(); // has something on the surface changed? send the surface state...
+    hostUpdate(); // send changes
   }
   
   hostSetSurfaceState();// process incomming host commands (if any)
