@@ -56,8 +56,6 @@ static maMSC_t maMSC;
 #endif
 
 
-
-
 // send surface state packet to host(s)
 void inline sendSurfaceState()
 {
@@ -118,7 +116,7 @@ void inline sendSurfaceState()
     Udp.write(Surface->playback2.faders[cnt]);
     tx_bytes += 1;
   }
-  Udp.write(Surface->playback1.faders[9]); // grand master
+  Udp.write(Surface->playback1.faders[8]); // grand master
   tx_bytes += 1;
 
 
@@ -167,26 +165,53 @@ void inline sendSurfaceState()
 
 #endif
 
-
-
-
 #endif // USE_ETHERNET
 }
 
 
-// send updates from the update queue to the host.
+
+// send updates when things change.
 void hostUpdate(){
 
-#if defined (USE_ETHERNET)
+  static uint8_t ofaders[FADER_PAGES][16];
+  static uint8_t omaster;
+  uint8_t FaderPage = Surface->FaderPage;
+
+  for (int c = 0; c < 16 ; c++){
+    uint8_t val;
+    if (c > 7) {
+      val = Surface->playback2.faders[c-8];
+    } else {
+      val = Surface->playback1.faders[c];
+    }
+
+    if (val != ofaders[FaderPage][c]){  // fader has changed
 
 #if defined (MA_MSC_UDP)
-  eth0_stats_tx += maMSC.Send_Fader_Value(1,1,Surface->playback1.faders[0]);
+      eth0_stats_tx += maMSC.Send_Fader_Value(FaderPage+1,c+1,val);   
+#endif
+      ofaders[FaderPage][c] = val;
+    }
+  }
+
+
+  // grand master is a special case, always pinned to page 1 fader 30
+  {
+    uint8_t val = Surface->playback1.faders[8];
+    if (val != omaster){  // fader has changed
+
+#if defined (MA_MSC_UDP)
+      eth0_stats_tx += maMSC.Send_Fader_Value(1,30,val);   
 #endif
 
-#endif
+      omaster = val;
+    }
+  }
 
 
-}
+
+
+} // hostUpdate()
 
 
 
@@ -588,7 +613,8 @@ void cmd_ifconfig(int arg_cnt, char **args){
       // args 1 is interface ip address
       ip.fromString(arg1);
       s->printf("eth0:  ip: %d.%d.%d.%d\n\r",  ip[0],ip[1],ip[2],ip[3]);
-      eth0_going_up(); // change    
+      if (eth0_up)
+        eth0_going_up(); // change        
     }  
   }
 }

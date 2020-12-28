@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_MA2_MSC_H_
-#define _INCLUDE_MA2_MSC_H_
+#ifndef _INCLUDE_MA_MSC_H_
+#define _INCLUDE_MA_MSC_H_
 
 #include "config.h"
 
@@ -35,9 +35,17 @@
  */
 
 
+// 0000   ff ff ff ff ff ff 00 23 24 82 f1 77 08 00 45 00   ÿÿÿÿÿÿ.#$.ñw..E.
+// 0010   00 38 f4 a5 00 00 80 11 c0 c3 c0 a8 01 fc c0 a8   .8ô¥....ÀÃÀ¨.üÀ¨
+// 0020   01 ff 17 75 17 75 00 24 2e f5 47 4d 41 00 4d 53   .ÿ.u.u.$.õGMA.MS
+// 0030   43 00 1c 00 00 00 f0 7f 7f 02 7f 01 31 2e 30 30   C.....ð.....1.00
+// 0040   30 00 35 00 32 f7                go  1 .   0 0    0.5.2÷
+//         0   exec  page                      cue number
+
+
 // TODO: Make adjustable
 constexpr uint16_t MSC_RX_PORT = 6004;
-constexpr uint16_t MSC_TX_PORT = 6005;
+constexpr uint16_t MSC_TX_PORT = 6004;
 
 
 struct MSC_Header_t {
@@ -70,15 +78,13 @@ struct MSC_Set_Header_t {
 //static MSC_Set_Header_t MSC_Command_Set;
 
 
-
-
 class maMSC_t {
 
    public: 
     
     void init (const char * ipAddress);     
 
-    uint16_t Send_Fader_Value(uint16_t page, uint16_t fader, uint8_t level);
+    uint16_t Send_Fader_Value(uint16_t page, uint16_t fader, uint8_t level, uint8_t command = MSC_SET);
     
     private:
 
@@ -95,45 +101,61 @@ class maMSC_t {
 //; page 1 - 256
 //; fader 1 - 999
 //; value 0 - 255
-uint16_t maMSC_t::Send_Fader_Value(uint16_t page, uint16_t fader, uint8_t level) {
+uint16_t maMSC_t::Send_Fader_Value(uint16_t page, uint16_t fader, uint8_t level, uint8_t command = MSC_SET) {
   static uint8_t buffer[11];
 
   uint16_t value = (level * 0x4000) / 256; // scale 0..255 to 0..16384
   uint8_t msb = (value >> 7) & 0x7F;
   uint8_t lsb = value & 0x7F;
  
-  // for a MSC message
+  // header for an MSC message
   buffer[0] = 0xf0; 
   buffer[1] = 0x7f;
+
+  // TODO: make configurable
   buffer[2] = 0x7F; // 00 - 6F Individual Devices, 70 - 7E Device Groups (15), 7F All devices
   buffer[3] = 0x02; // 02  - MSC Subtype
   buffer[4] = 0x7F; // 01 General , 02 MovingLight , 7F All 
-  buffer[5] = MSC_SET; // MSC SET command
+
+  // the MSC command and data
+  buffer[5] = command; // MSC SET command
   buffer[6] = fader-1;
   buffer[7] = page & 0xFF;
   buffer[8] = lsb;
   buffer[9] = msb;
+
+  // footer for an MSC message
   buffer[10] = 0xF7;
+
+  // send to target
   return maMSC_t::send(&buffer[0], 11);  
 }
 
 
+
+
+
 void maMSC_t::init (const char *ipAddress) {     
   target.fromString(ipAddress);
-
 #if defined(TESTING) 
-  Serial.printf("MSC Target: %d.%d.%d.%d \r\n", target[0], target[1], target[2], target[3] );
+  Serial.printf("GMA MSC Target: %d.%d.%d.%d \r\n", target[0], target[1], target[2], target[3] );
 #endif
-     dev_Udp.begin(MSC_RX_PORT);  
-     return true;
+  dev_Udp.begin(MSC_RX_PORT);  
+  return;
 }
 
 
+
 uint16_t maMSC_t::send(const uint8_t *sysexBuffer, uint32_t len) {
-  static uint8_t buffer[12];
-  //memset(&buffer[0], 0, sizeof(buffer));
-  sprintf((char *)&buffer, "GMA\0");
-  sprintf((char *)&buffer[4], "MSC\0");
+  if (len > 12) {
+#if defined(TESTING) 
+    Serial.printf("GMA MSC: sysex too long: %d...\r\n", len);
+#endif  
+    return 0;
+  }
+  static uint8_t buffer[12] = {0};
+  sprintf((char *)&buffer, "GMA");
+  sprintf((char *)&buffer[4], "MSC");
   memcpy((void *)&buffer[8],&len, sizeof(uint32_t));
   
   if (dev_Udp.beginPacket(target, MSC_TX_PORT)){
@@ -143,13 +165,15 @@ uint16_t maMSC_t::send(const uint8_t *sysexBuffer, uint32_t len) {
   return 12+len;
   } else {
 #if defined(TESTING) 
-  Serial.printf("MSC: beginPacket failed...\r\n");
-#endif
+  Serial.printf("GMA MSC: beginPacket failed...\r\n");
+#endif  
   }
+  return 0;
 }
 
 
 #endif // USE_ETHERNET
 
 
-#endif // _INCLUDE_MA2_MSC_H_
+
+#endif // _INCLUDE_MA_MSC_H_

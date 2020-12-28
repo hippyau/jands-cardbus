@@ -36,7 +36,7 @@ FIFO::FIFO() {
 FIFO::~FIFO() {
 }
 
-void FIFO::push(uint16_t data) {
+void FIFO::push(int data) {
   if(numElements == FIFO_SIZE) {
 //    Serial.println(F("Buffer full"));
     return;
@@ -59,7 +59,7 @@ void FIFO::push(uint16_t data) {
   }
 }
 
-uint16_t FIFO::pop() {
+int FIFO::pop() {
   if(numElements == 0) {
 //    Serial.println(F("Buffer empty"));
     return NULL;
@@ -68,7 +68,7 @@ uint16_t FIFO::pop() {
     //Decrement size
     numElements--;
 
-    uint16_t data = buffer[head];
+    int data = buffer[head];
 
     if(numElements >= 1) {
       //Move head up one position

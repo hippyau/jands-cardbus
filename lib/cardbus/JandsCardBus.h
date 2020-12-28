@@ -16,6 +16,9 @@
 /* while we update buttons and LEDs every loop, only poll faders only every N milliseconds */
 #define FADER_POLL_SPEED  25  
 
+// number of virtual fader pages to store values for
+#define FADER_PAGES   10 
+
 /* ignore 0->1 transitions and changes less than 2 difference */
 #define FADER_FILTERING  // filtering fader values 
 
@@ -94,6 +97,9 @@ public:
   SKeyboard keys;  // not harware, rather a key press input processor
 
   bool halt = false; // if true, update is not allowed.
+
+
+  uint8_t FaderPage = 0;  // current fader page
 };
 
 

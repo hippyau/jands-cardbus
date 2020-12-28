@@ -37,12 +37,12 @@ class FIFO {
     int head;
     int tail;
     int numElements;
-    uint16_t buffer[FIFO_SIZE];
+    int buffer[FIFO_SIZE];
   public:
     FIFO();
     ~FIFO();
-    void push(uint16_t data);
-    uint16_t pop();
+    void push(int data);
+    int pop();
     int size();
 };
 

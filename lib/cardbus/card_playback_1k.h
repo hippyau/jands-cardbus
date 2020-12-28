@@ -188,7 +188,7 @@ bool playbackCard::update(bool check_faders_now = true)
       if (cnt < 8){
       faders[cnt] = read_card_mux_fader(0x00,cnt); // faders 1-8
       } else {
-      faders[cnt] = read_card_mux_fader(0x08,cnt); // grand master fader (if present)
+      faders[cnt] = read_card_mux_fader(0x08,0); // grand master fader (if present)      
       }
 
 #if defined (FADER_FILTERING)    
@@ -204,6 +204,7 @@ bool playbackCard::update(bool check_faders_now = true)
       if (faders[cnt] != ofaders[cnt])
       {
         ofaders[cnt] = faders[cnt];
+
         fc = true; // fader change
       }
     }
@@ -217,8 +218,6 @@ bool playbackCard::update(bool check_faders_now = true)
         fc = true;
         obuttons[n] = buttons[n];
       }
-    // fader stuff
-
   }
 
 #if defined(PLAYBACK_1K_CARD_TESTING)
@@ -236,6 +235,6 @@ bool playbackCard::update(bool check_faders_now = true)
     }
 #endif
  
- return fc;
+ return fc; // return true if something changed
 } 
 
