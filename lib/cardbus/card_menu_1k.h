@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef _CARD_MENU_1K_H_
+#define _CARD_MENU_1K_H_
 
 #include <stdint.h>
 #include "hardware.h"
@@ -186,3 +187,5 @@ bool menuCard::update()
  return fc;
 } 
 
+
+#endif

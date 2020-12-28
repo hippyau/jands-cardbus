@@ -1,17 +1,24 @@
 #pragma once
 
 #include <Arduino.h>
+#include "config.h"
 #include "button_def.h"
 #include "fifo.h"
 
-#define USB_KEYBOARD // act as a USB keyboard
 
 
 // updated every loop, register of each surface button state
 // of buttons defined in button_def.h
 static uint16_t sbuttons[TOTAL_BUTTONS];
 
-#define SHIFT_HELD  (sbuttons[BTN_SHIFT]!=0)
+
+#if defined(CONFIG_ECHELON_1K)
+#define SHIFT_HELD  (sbuttons[BTN_PIG_LEFT]!=0 | sbuttons[BTN_PIG_RIGHT]!=0)
+#else
+#define SHIFT_HELD  (sbuttons[BTN_SHIFT]!=0 | )
+#endif
+
+
 
 // Surface Button, press detection with debounce 
 class SButton {
@@ -33,8 +40,6 @@ private:
   uint8_t _state, _lastState;
   uint16_t _debounceDelay;
 	uint32_t _lastMillis, _lastDebounceTime;
-
-
 
 };
 
@@ -64,6 +69,9 @@ bool inline SButton::check(bool triggerState = 1) {
 
 
 
+
+
+
 class SKeyboard {
     public:
      void update();
@@ -83,26 +91,30 @@ class SKeyboard {
 
 void SKeyboard::update(){
     for (uint16_t cnt = BUTTONS_START ; cnt < BUTTONS_END ; cnt++) {
-     
+           
       if ((laststate[cnt] != 0) & (sbuttons[cnt] == 0)) {
-       keyQueue.push(cnt);  // released
+          keyQueue.push(0-cnt);  // released is negative
+      } else if ((laststate[cnt] == 0) & (sbuttons[cnt] != 0)) {
+          keyQueue.push(cnt);  // pressed is positive
       }
 
-#ifdef USB_KEYBOARD
       if (laststate[cnt] != sbuttons[cnt]) {
         if (_usb_key[cnt] > 0){  // if a key assigned
           if (laststate[cnt] == 0) {
+#ifdef USB_KEYBOARD
             Keyboard.press(_usb_key[cnt]);
+#endif                      
           }
            else
           {
+#ifdef USB_KEYBOARD            
             Keyboard.release(_usb_key[cnt]);
+#endif            
           }
         }      
       }
-#endif
 
-      laststate[cnt] = sbuttons[cnt];      
+      laststate[cnt] = sbuttons[cnt]; // update old state
     }
 }
 

@@ -102,9 +102,9 @@ bool more_than_one_space(String &cmd)
 }
 
 // Process key input into the surface command line...
-void SurfaceCmdLine(uint8_t key)
+void SurfaceCmdLine(int key)
 {
-
+  
   // if store was last solo command, we are now expecting a destination button on a preset, assign or palette card
   if (expect_store_destination)
   {
@@ -437,7 +437,7 @@ void SurfaceCmdLine(uint8_t key)
 
   // update display
 
-  
+
   Surface->assign.lcd.setCursor(0, 0);
   Surface->assign.lcd.print("                                        ");
   Surface->assign.lcd.setCursor(0, 0);

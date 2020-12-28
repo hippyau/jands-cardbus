@@ -23,6 +23,7 @@ Event 408
 #define TOTAL_BUTTONS   (168 + 144)
 
 
+
 // Event 4xx
 #if defined (CONFIG_EVENT_408)
 
@@ -95,13 +96,16 @@ Event 408
 #define BTN_SOFT4       63
 #define BTN_SOFT5       64
 
+
+
 #endif 
 
 
 #if defined (CONFIG_ECHELON_1K)
 
-#define BUTTONS_START  (92)
-#define BUTTONS_END    (168)
+#define BUTTONS_START  (92)  // shortcut the Event408 buttons
+
+#define BUTTONS_END    (TOTAL_BUTTONS)// (168)
 
 // Echelon 1K Program Card
 
@@ -172,7 +176,7 @@ Event 408
 #define BTN_L_GOTO     151 // S60
 
 #define BTN_NEXT       152 // S61
-#define BTN_L_PIG      153 // S62
+#define BTN_PIG_LEFT   153 // S62
 
 #define BTN_MENUS      153 // S63 led
 
@@ -190,5 +194,68 @@ Event 408
 #define BTN_ARROW_ARROW_RIGHT   165 // S74
 #define BTN_BOTSOFT4   166 // S75
 #define BTN_BOTSOFT5   167 // S76
+
+
+
+// menu cards
+#define MENU1_1         168
+#define MENU1_16        183
+#define MENU1_17        184
+#define MENU1_32        199
+#define MENU1_LEFT_DOWN 200
+#define MENU1_LEFT_UP   201
+#define MENU1_RUGHT_DOWN 202
+#define MENU1_RIGHT_UP   203
+
+#define MENU2_1         204
+#define MENU2_16        219
+#define MENU2_17        220
+#define MENU2_32        235
+#define MENU2_LEFT_DOWN 236
+#define MENU2_LEFT_UP   237
+#define MENU2_RUGHT_DOWN 238
+#define MENU2_RIGHT_UP   239
+
+
+// playback card 1 faders 1-8 
+// Layout is as such:
+// Choose +0
+//  Play  +1
+//  Pause +2
+//  Flash +3
+
+#define PB1_1_Choose    240
+#define PB1_1_Play      PB1_1_Choose + 1
+#define PB1_1_Pause     PB1_1_Choose + 2
+#define PB1_1_Flash     PB1_1_Choose + 3
+
+#define PB1_2_Choose    244
+#define PB1_2_Play      PB1_2_Choose + 1
+#define PB1_2_Pause     PB1_2_Choose + 2
+#define PB1_2_Flash     PB1_2_Choose + 3
+
+#define PB1_3_Choose    248
+#define PB1_3_Play      PB1_3_Choose + 1
+#define PB1_3_Pause     PB1_3_Choose + 2
+#define PB1_3_Flash     PB1_3_Choose + 3
+
+// [etc etc...]
+#define PB1_4_Choose    252
+#define PB1_5_Choose    256
+#define PB1_6_Choose    260
+#define PB1_7_Choose    264
+#define PB1_8_Choose    268
+
+#define BTN_DBO         272
+#define BTN_NEXT_PAGE   273
+
+#define PB2_1_Choose    274
+#define PB2_2_Choose    278
+#define PB2_3_Choose    282
+#define PB2_4_Choose    286
+#define PB2_5_Choose    290
+#define PB2_6_Choose    294
+#define PB2_7_Choose    298
+#define PB2_8_Choose    302
 
 #endif 

@@ -1,5 +1,7 @@
 
-#pragma once
+#ifndef _CARD_PROGRAM_1K_H_
+#define _CARD_PROGRAM_1K_H_
+
 
 #include <stdint.h>
 #include "hardware.h"
@@ -166,3 +168,4 @@ bool programCard::update()
  return fc;
 } 
 
+#endif // _CARD_PROGRAM_1K_H_
