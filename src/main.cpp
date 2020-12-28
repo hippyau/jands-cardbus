@@ -387,6 +387,8 @@ void setup()
   cmdAdd("write",cmd_buswrite);
   cmdAdd("read",cmd_busread);
   cmdAdd("mux",cmd_busmux);
+  cmdAdd("lcd",cmd_lcd);
+  cmdAdd("menulbl",cmd_lcd_menu_label);
 #endif
 #endif
 

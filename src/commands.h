@@ -48,6 +48,8 @@ void cmd_help(int arg_cnt, char **args)
   cmdGetStream()->println("mux      - set a mux [hex address] (aka ALEH) for the currently selected card & device");
   cmdGetStream()->println("write    - select hex bus [address] and write hex [data]");
   cmdGetStream()->println("read     - read bus at current address, or option [hex address] also selects device ");   
+  cmdGetStream()->println("lcd      - select [LCD number] and print [string]");   
+  cmdGetStream()->println("menulbl  - set a menu card item label [0..63] to [string(5)]");   
 #endif  
 }
 
@@ -166,26 +168,152 @@ void cmd_busread(int arg_cnt, char **args) {
 // set bus address
 void cmd_set(int arg_cnt, char **args) {
   if (Surface->halt == false) cmd_warn_bus_running(); 
-
   Stream *s = cmdGetStream();
 
   if (arg_cnt == 1){
     s->printf("set: @ 0x%02X\n\r", reg_last_addr);  
     return;    
   }
-
- if (arg_cnt > 2){
+  if (arg_cnt > 2){
     s->println("set: Invalid Arguments.");
     return;    
   }
-
- uint8_t addr = strtol(args[1], NULL, 16);
- reg_last_addr = !addr;
- selectAddr(addr);
- 
- s->printf("set: selected @ 0x%02X\n\r", reg_last_addr);  
+  uint8_t addr = strtol(args[1], NULL, 16);
+  reg_last_addr = !addr;
+  selectAddr(addr);
+  s->printf("set: selected @ 0x%02X\n\r", reg_last_addr);  
 }
-#endif
+
+
+// set a message on a LCD
+void cmd_lcd(int arg_cnt, char **args) {
+  if (Surface->halt == false) cmd_warn_bus_running(); 
+  Stream *s = cmdGetStream();
+
+  if (arg_cnt == 1){
+    #if defined(CONFIG_ECHELON_1K)
+      s->println("0: Menu 1 Left");
+      s->println("1: Menu 1 Right");
+      s->println("2: Menu 2 Left");
+      s->println("3: Menu 2 Right");
+      s->println("4: Playback 1");
+      s->println("5: Playback 2");
+    #endif
+
+    return;    
+  }
+  if (arg_cnt > 3){
+    s->println("lcd: TODO: more than one word.");
+    return;    
+  }
+
+  uint8_t nLCD = strtol(args[1], NULL, 10);
+  lcdModule * lcd;
+
+  switch (nLCD)
+  {
+#if defined(CONFIG_ECHELON_1K)    
+  case 0:
+     lcd = &Surface->menu1.lcd[0];  
+    break;
+  case 1:
+     lcd = &Surface->menu1.lcd[1];  
+    break;  
+  case 2:
+     lcd = &Surface->menu2.lcd[0];  
+    break;  
+  case 3:
+     lcd = &Surface->menu2.lcd[1];  
+    break;  
+  case 4:
+     lcd = &Surface->playback1.lcd[0];  
+    break;  
+  case 5:
+     lcd = &Surface->playback2.lcd[0];  
+    break;  
+  default:
+     s->println("lcd: Invalid LCD number");
+     return;    
+    break;
+#endif    
+  }
+
+  lcd->setCursor(0,0);
+  lcd->printf("%s", args[2]);
+
+}
+
+
+// set a message on a LCD
+void cmd_lcd_menu_label(int arg_cnt, char **args) {
+  if (Surface->halt == false) cmd_warn_bus_running(); 
+  Stream *s = cmdGetStream();
+
+  if (arg_cnt == 1){
+    #if defined(CONFIG_ECHELON_1K)
+      s->println("Usage: [menu item] [name]");
+    #endif
+    return;    
+  }
+  if (arg_cnt > 3){
+    s->println("menu_label: error, more than one word.");
+    return;    
+  }
+
+  uint8_t nLCD = strtol(args[1], NULL, 10);
+  uint8_t X = 0, Y = 0;
+  lcdModule * lcd;
+
+  if (nLCD >= 0 & nLCD <= 7) {
+    lcd = &Surface->menu1.lcd[0];
+    X = (nLCD * 5);
+    Y = 0;
+  } else if (nLCD >= 8 & nLCD <= 15) {
+    lcd = &Surface->menu1.lcd[0];
+    X = ((nLCD-8) * 5);
+    Y = 1;
+  } else if (nLCD >= 16 & nLCD <= 23) {
+    lcd = &Surface->menu1.lcd[1];
+    X = ((nLCD-16) * 5);
+    Y = 0;
+  } else if (nLCD >= 24 & nLCD <= 31) {
+    lcd = &Surface->menu1.lcd[1];
+    X = ((nLCD-24) * 5);
+    Y = 1;
+  } else if (nLCD >= 32 & nLCD <= 39) {
+    lcd = &Surface->menu2.lcd[0];
+    X = ((nLCD-32) * 5);
+    Y = 0;
+  } else if (nLCD >= 40 & nLCD <= 47) {
+    lcd = &Surface->menu2.lcd[0];
+    X = ((nLCD-40) * 5);
+    Y = 1;
+  } else if (nLCD >= 48 & nLCD <= 55) {
+    lcd = &Surface->menu2.lcd[1];
+    X = ((nLCD-48) * 5);
+    Y = 0;
+  }  else if (nLCD >= 56 & nLCD <= 63) {
+    lcd = &Surface->menu2.lcd[1];
+    X = ((nLCD-56) * 5);
+    Y = 1;    
+  } else {
+    s->println("menu_label: invalid label number.");
+    return;
+  }
+  
+  lcd->setCursor(X,Y);
+  lcd->print("     "); // clear old one
+  lcd->setCursor(X,Y);
+  lcd->printf("%.5s", args[2]); // print 5 chars max
+
+}
+
+
+
+
+
+
+#endif // SERIAL_CLI_BUSCONTROL
 
 
 // print some stats
@@ -213,7 +341,7 @@ void cmd_restart(int arg_cnt, char **args){
 // reboot teensy
 void cmd_reboot(int arg_cnt, char **args){
   Stream *s = cmdGetStream();
-  s->println("Soft Reboot...");  
+  s->println("Enter Bootloader...");  
   _reboot_Teensyduino_();  
 }
 
@@ -235,7 +363,6 @@ void cmd_run(int arg_cnt, char **args){
 
 #if defined (USE_ETHERNET)
 
-
 // execute when going up or IP
 void eth0_going_up(){
       eth0_up = true;
@@ -246,12 +373,9 @@ void eth0_going_up(){
         sprintf((char*)&ipstr,"%d.%d.%d.%d",trg[0],trg[1],trg[2],trg[3]);
         maMSC.init(ipstr);   
 #endif      
-
 }
 
-
 void cmd_ifconfig(int arg_cnt, char **args){
-
   Stream *s = cmdGetStream();
   if (arg_cnt == 1){
     s->printf("eth0:  ip: %d.%d.%d.%d  target: %d.%d.%d.%d:%d  %s\n\r",  ip[0],ip[1],ip[2],ip[3], trg[0],trg[1],trg[2],trg[3], localPort, eth0_up == true ? "UP":"DOWN");
