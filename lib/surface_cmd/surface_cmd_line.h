@@ -6,7 +6,6 @@
 #include "Arduino.h"
 #include "JandsCardBus.h"
 
-
 static String command_line = "";
 static String pwd = "Channel"; // current directory / object
 static String preset = "1.";
@@ -28,7 +27,6 @@ static int preset_number = 1;
   8 = shapers
   9 = video
 */
-
 
 // parse and execute the command.
 void SurfaceCmdLine_Process(String &cmd)
@@ -104,7 +102,7 @@ bool more_than_one_space(String &cmd)
 // Process key input into the surface command line...
 void SurfaceCmdLine(int key)
 {
-  
+
   // if store was last solo command, we are now expecting a destination button on a preset, assign or palette card
   if (expect_store_destination)
   {
@@ -434,9 +432,7 @@ void SurfaceCmdLine(int key)
 
   last_button = key;
 
-
   // update display
-
 
   Surface->assign.lcd.setCursor(0, 0);
   Surface->assign.lcd.print("                                        ");
@@ -444,6 +440,5 @@ void SurfaceCmdLine(int key)
   Surface->assign.lcd.printf("[%s]> ", pwd.c_str());
   Surface->assign.lcd.print(command_line);
 }
-
 
 #endif

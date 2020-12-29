@@ -34,7 +34,6 @@
 ;  0B  GO_OFF                                    variable -23 
  */
 
-
 // TODO: Make adjustable
 constexpr uint16_t MSC_RX_PORT = 6004;
 constexpr uint16_t MSC_TX_PORT = 6004;
@@ -174,7 +173,7 @@ uint16_t maMSC_t::update(void)
 
     if (packetSize <= MSC_PACKET_SIZE)
     {
-      memset(&buffer[0],0,MSC_PACKET_SIZE);
+      memset(&buffer[0], 0, MSC_PACKET_SIZE);
       dev_Udp.read(&buffer[0], MSC_PACKET_SIZE);
 
       // check is a GMA\0MSC\0 packet
@@ -184,7 +183,7 @@ uint16_t maMSC_t::update(void)
         int32_t size;
         memcpy(&size, &buffer[8], sizeof(int32_t));
 
-        if ((buffer[12]==0xF0) & (buffer[13]==0x7F))
+        if ((buffer[12] == 0xF0) & (buffer[13] == 0x7F))
         {
           uint8_t deviceID = buffer[14];
           uint8_t cmd_fmt = buffer[16];
@@ -199,76 +198,80 @@ uint16_t maMSC_t::update(void)
           {
           case MSC_SET:
 
-           exec = buffer[18] + 1;
-           page = buffer[19];
+            exec = buffer[18] + 1;
+            page = buffer[19];
 
-           value = (buffer[21] << 7) | (buffer[20] & 0x7F);   
+            value = (buffer[21] << 7) | (buffer[20] & 0x7F);
 
-          //memcpy(&value, &buffer[20], sizeof(int16_t));
+            //memcpy(&value, &buffer[20], sizeof(int16_t));
 
             /* code */
 #if defined(DEBUG_TESTING)
             Serial.printf(" > MSC In: SET Value: %d Exec: %d Page: %d\r\n", value, exec, page);
-#endif            
+#endif
             break;
 
-          case MSC_GO:{
+          case MSC_GO:
+          {
 
-          // TODO: string to integers or float
-            char cue[8];            
-            if (strlen(&buffer[18]) < 8){
-              strcpy(&cue[0],&buffer[18]);
-            } 
-
-            uint8_t pos = 18+(strlen(&cue[0]))+1;
-
-            if (buffer[pos+1] == 0x2e)// is a decimal in exec.page
-            {                    
-              buffer[pos+1] = 0x00; // turn decimal place into a null
+            // TODO: string to integers or float
+            char cue[8];
+            if (strlen(&buffer[18]) < 8)
+            {
+              strcpy(&cue[0], &buffer[18]);
             }
-            if (buffer[pos+3] == 0xf7) // is the terminator
-            {                    
-              buffer[pos+3] = 0x00; // turn decimal place into a null
+
+            uint8_t pos = 18 + (strlen(&cue[0])) + 1;
+
+            if (buffer[pos + 1] == 0x2e) // is a decimal in exec.page
+            {
+              buffer[pos + 1] = 0x00; // turn decimal place into a null
+            }
+            if (buffer[pos + 3] == 0xf7) // is the terminator
+            {
+              buffer[pos + 3] = 0x00; // turn decimal place into a null
             }
 
             exec = atoi(&buffer[pos]);
-            page = atoi(&buffer[pos+2]);
+            page = atoi(&buffer[pos + 2]);
 
 #if defined(DEBUG_TESTING)
             Serial.printf(" > MSC In: GO %s Exec: %d Page: %d\r\n", cue, exec, page);
 #endif
           }
-            break;
+          break;
 
-          case MSC_RESET:  {        
+          case MSC_RESET:
+          {
             /* code */
-         // TODO: string to integers or float
-            char cue[8];            
-            if (strlen(&buffer[18]) < 8){
-              strcpy(&cue[0],&buffer[18]);
-            } 
-
-            uint8_t pos = 18+(strlen(&cue[0]))+1;
-
-            if (buffer[pos+1] == 0x2e)// is a decimal in exec.page
-            {                    
-              buffer[pos+1] = 0x00; // turn decimal place into a null
+            // TODO: string to integers or float
+            char cue[8];
+            if (strlen(&buffer[18]) < 8)
+            {
+              strcpy(&cue[0], &buffer[18]);
             }
-            if (buffer[pos+3] == 0xf7) // is the terminator
-            {                    
-              buffer[pos+3] = 0x00; // turn decimal place into a null
+
+            uint8_t pos = 18 + (strlen(&cue[0])) + 1;
+
+            if (buffer[pos + 1] == 0x2e) // is a decimal in exec.page
+            {
+              buffer[pos + 1] = 0x00; // turn decimal place into a null
+            }
+            if (buffer[pos + 3] == 0xf7) // is the terminator
+            {
+              buffer[pos + 3] = 0x00; // turn decimal place into a null
             }
 
             exec = atoi(&buffer[pos]);
-            page = atoi(&buffer[pos+2]);
+            page = atoi(&buffer[pos + 2]);
 
 #if defined(DEBUG_TESTING)
             Serial.printf(" > MSC In: RESET %s Exec: %d Page: %d\r\n", cue, exec, page);
 #endif
           }
-            break;
+          break;
 
-/*
+            /*
           case MSC_STOP:
            
             break;
@@ -294,7 +297,8 @@ uint16_t maMSC_t::update(void)
 
 #if defined(DEBUG_TESTING)
             Serial.printf("MSC In: PktSize: %d FrmSize: %d \r\n", packetSize, size);
-            for (uint8_t cntr = 12; cntr < packetSize ; cntr++){
+            for (uint8_t cntr = 12; cntr < packetSize; cntr++)
+            {
               Serial.printf("0x%02x ", buffer[cntr]);
             }
             Serial.printf("\n\r");
@@ -302,11 +306,11 @@ uint16_t maMSC_t::update(void)
             break;
           }
 
-        } // 
+        } //
         else
         {
 #if defined(DEBUG_TESTING)
-          Serial.printf(" > MSC In: invalid framing. 0x%02x 0x%02x 0x%02x 0x%02x\r\n", buffer[12],buffer[13],buffer[14],buffer[15]);
+          Serial.printf(" > MSC In: invalid framing. 0x%02x 0x%02x 0x%02x 0x%02x\r\n", buffer[12], buffer[13], buffer[14], buffer[15]);
 #endif
         }
 

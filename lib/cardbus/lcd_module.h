@@ -3,14 +3,12 @@
 #ifndef _LCD_CARDBUS_H
 #define _LCD_CARDBUS_H
 
-
 #include "Arduino.h"
 #include "hardware.h"
 #include "Print.h"
 
 #define LCD_COLUMNS 40
-#define LCD_ROWS    2
-
+#define LCD_ROWS 2
 
 /* LCD instruction set */
 // commands
@@ -52,10 +50,6 @@
 #define LCD_5x10DOTS 0x04
 #define LCD_5x8DOTS 0x00
 
-
-
-
-
 /*
 ██╗      ██████╗██████╗ 
 ██║     ██╔════╝██╔══██╗
@@ -63,28 +57,28 @@
 ██║     ██║     ██║  ██║
 ███████╗╚██████╗██████╔╝
 ╚══════╝ ╚═════╝╚═════╝                                                          
-*/            
+*/
 class lcdModule : public Print
 {
 public:
   void init(uint8_t address);
   void setContrast(uint8_t value);
   void setCursor(uint8_t col, uint8_t row);
-  void clear(); 
+  void clear();
   void createChar(uint8_t location, uint8_t charmap[]);
 
   // can use lcd.print, lcd.println, lcd.printf() etc
-  virtual size_t write(uint8_t); 
+  virtual size_t write(uint8_t);
   using Print::write;
 
   lcdModule() // constructor
   {
-   contrast = 0x05;
-   lcd_addr = 0;
+    contrast = 0x05;
+    lcd_addr = 0;
 
-   numlines = LCD_ROWS;
-   row_offset[0] = 0;
-   row_offset[1] = 0x40;
+    numlines = LCD_ROWS;
+    row_offset[0] = 0;
+    row_offset[1] = 0x40;
   }
 
 private:
@@ -96,18 +90,16 @@ private:
   uint8_t row_offset[2];
 };
 
-
-
 // initialize LCD at given bus address and turn it on
 // this is a slow process... just over 10ms
 void lcdModule::init(uint8_t address)
 {
   lcd_addr = address;
 
-  selectAddr(lcd_addr); 
-  writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE );  
+  selectAddr(lcd_addr);
+  writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE);
   delay(5);
-  writeData(LCD_DISPLAYSHIFTOFF); 
+  writeData(LCD_DISPLAYSHIFTOFF);
   delay(1);
   writeData(LCD_CLEARDISPLAY);
   delay(2);
@@ -115,14 +107,13 @@ void lcdModule::init(uint8_t address)
   delay(3);
   writeData(0x0C); // display on, no cursor .. used 0x0F for cursor on, blinking on
 
-#if defined (CONFIG_EVENT_408)  
+#if defined(CONFIG_EVENT_408)
   setContrast(contrast);
-#endif  
-
-#if defined (TESTING)
-  Serial.printf(" LCD @ 0x%02x\n\r",lcd_addr);
 #endif
 
+#if defined(TESTING)
+  Serial.printf(" LCD @ 0x%02x\n\r", lcd_addr);
+#endif
 }
 
 // write a cmd byte to the LCD
@@ -134,7 +125,7 @@ void lcdModule::write_cmd(uint8_t lcd_command)
 
 // write a data byte to the LCD
 void lcdModule::write_data(uint8_t lcd_data)
-{  
+{
   selectAddr(lcd_addr + 1);
   writeDataDelay(lcd_data);
 }
@@ -160,26 +151,26 @@ void lcdModule::setContrast(uint8_t value)
 void lcdModule::clear()
 {
   write_cmd(LCD_CLEARDISPLAY);
-  delay(3);  
-}  
+  delay(3);
+}
 
 // locate the cursor
 void lcdModule::setCursor(uint8_t col, uint8_t row)
 {
   if (row < LCD_ROWS)
-    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));    
-}  
-
+    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));
+}
 
 // Allows us to fill the first 8 CGRAM locations
 // with custom characters
-void lcdModule::createChar(uint8_t location, uint8_t charmap[]) {
+void lcdModule::createChar(uint8_t location, uint8_t charmap[])
+{
   location &= 0x7; // we only have 8 locations 0-7
   write_cmd(LCD_SETCGRAMADDR | (location << 3));
-  for (int i=0; i<8; i++) {
+  for (int i = 0; i < 8; i++)
+  {
     write_data(charmap[i]);
   }
 }
-
 
 #endif

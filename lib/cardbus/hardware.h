@@ -1,13 +1,11 @@
 #ifndef _HARDWARE_H
 #define _HARDWARE_H
 
-
 // comment out for using arduino pin mapping where, on boards where the data bus is not consective pins (like Leonardo)
 #define NO_PIN_MAPPING // use direct port commands
 
 #define PORT_DELAY 3 // delay before read and after write
 #define LCD_DELAY 40 // delay on LCD commands
-
 
 // arduino pin numbers - teensy pin names
 
@@ -34,17 +32,12 @@
 
 */
 
-
-
-namespace CARD_TYPES {
-  constexpr uint8_t MENU_CARD =     0b01100001;  // Echelon 1K Menu Card
-  constexpr uint8_t PLAYBACK_CARD = 0b01100010;  // Echelon 1K Playback Card  
-  constexpr uint8_t PROGRAM_CARD =  0b01100011;  // Echelon 1K Program Card
-}
-
-
-
-
+namespace CARD_TYPES
+{
+  constexpr uint8_t MENU_CARD = 0b01100001;     // Echelon 1K Menu Card
+  constexpr uint8_t PLAYBACK_CARD = 0b01100010; // Echelon 1K Playback Card
+  constexpr uint8_t PROGRAM_CARD = 0b01100011;  // Echelon 1K Program Card
+} // namespace CARD_TYPES
 
 // change bus port pin direction
 // accept INPUT or OUTPUT
@@ -71,8 +64,7 @@ void inline clk_ds();
 // device select pulse with delay, primarily for the slow LCD chipset
 void inline clk_ds_lcd();
 
-
-// ----- higher level 
+// ----- higher level
 
 // in order to make multiple writes to same address more efficient in loops, we use this to only
 // latch an address if it has changed since the previous call to selectAddr, otherwise do nothing except change direction
@@ -95,9 +87,6 @@ uint8_t inline readData();
 
 // register of current/last used address
 static uint16_t reg_last_addr = -1;
-
-
-
 
 /* implementation */
 
@@ -135,7 +124,7 @@ uint8_t inline readd()
   return (128 * bin[7] + 64 * bin[6] + 32 * bin[5] + 16 * bin[4] + 8 * bin[3] + 4 * bin[2] + 2 * bin[1] + bin[0]);
 #else
   delayMicroseconds(PORT_DELAY); // let settle
-  return PIND; // return data
+  return PIND;                   // return data
 #endif
 }
 
@@ -156,9 +145,9 @@ void inline dirb(int dir)
 // write bus control signals
 void inline writec(uint8_t inb)
 {
-  digitalWrite(DIR, inb & (1 << 0));  // PORT E
-  digitalWrite(BUF, inb & (1 << 1)); 
-  digitalWrite(MUX, inb & (1 << 2));  // PORT C
+  digitalWrite(DIR, inb & (1 << 0)); // PORT E
+  digitalWrite(BUF, inb & (1 << 1));
+  digitalWrite(MUX, inb & (1 << 2)); // PORT C
   digitalWrite(ALE, inb & (1 << 3));
   digitalWrite(DS, inb & (1 << 4));
   digitalWrite(RW, inb & (1 << 5));
@@ -197,7 +186,6 @@ void inline clk_ds_lcd()
   digitalWrite(DS, 0);
 }
 
-
 /* Higher-level */
 
 // in order to make multiple writes to same address more efficient in loops, we use this to only
@@ -207,14 +195,13 @@ void inline selectAddr(uint8_t addr)
 {
   dirb(OUTPUT); // output to bus
   if (addr != reg_last_addr)
-  {               // only select address if not the same as last address selected.
+  { // only select address if not the same as last address selected.
     reg_last_addr = addr;
     writec(0x0d); // DIR HIGH, MUX HIGH, ALE HIGH
     writed(addr); //
-    clk_ale();     
+    clk_ale();
   }
 }
-
 
 // write a byte to the device (at a previously selected address)
 void inline writeData(uint8_t data)
@@ -227,7 +214,6 @@ void inline writeData(uint8_t data)
 // always returns with bus in an output configuration
 // RETURN 8-bit value read at current address/device
 uint8_t inline readData();
-
 
 // write a byte to the bus and clock the ALEH (Mux) line
 void inline writeMux(uint8_t data)
@@ -265,6 +251,5 @@ uint8_t inline readData()
 
   return result;
 }
-
 
 #endif // _HARDWARE_H
