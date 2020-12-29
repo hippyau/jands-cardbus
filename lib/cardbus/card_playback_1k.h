@@ -6,13 +6,11 @@
 #include "Keyboard.h"
 #include "lcd_module.h"
 
-
 /*
 
 Echelon PLAYBACK Card (ECHPBK2.SC1 Oct 1, 1999, D.Timmins)
                                                                                                                                                                                                                
 */
-
 
 namespace PLAYBACK_CARD {
 constexpr uint8_t NUM_OF_FADERS = 9;
@@ -231,7 +229,7 @@ bool playbackCard::update(bool check_faders_now = true)
     {    
         lcd[0].setCursor(0, 1);
         lcd[0].printf(" %03d  %03d  %03d  %03d  %03d  %03d  %03d  %03d", faders[0], faders[1], faders[2], faders[3], faders[4], faders[5], faders[6], faders[7]);        
-        Serial.printf("B0=0x%2x B1=0x%2x B2=0x%2x B3=0x%2x B4=0x%2x\n\r", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
+//      Serial.printf("B0=0x%2x B1=0x%2x B2=0x%2x B3=0x%2x B4=0x%2x\n\r", buttons[0], buttons[1], buttons[2], buttons[3], buttons[4]);      
     }
 #endif
  

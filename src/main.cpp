@@ -13,6 +13,12 @@
 */
 
 // configuration
+
+// //teensy 2.0++ hack float support -- https://community.platformio.org/t/pio-doesnt-build-teensy-floating-point-support/3296/3
+// asm(".global _scanf_float");
+// asm(".global _printf_float");
+
+
 #include "config.h"
 #include "globals.h"
 #include <JandsCardBus.h>
@@ -156,8 +162,9 @@ void inline sendSurfaceState()
 
 
 // send updates when things change.
-void hostUpdate(){
+void MA_Update(){
 
+// faders....
   static uint8_t ofaders[FADER_PAGES][16];
   static uint8_t omaster;
   uint8_t FaderPage = Surface->FaderPage;
@@ -177,20 +184,23 @@ void hostUpdate(){
 #endif
       ofaders[FaderPage][c] = val;
     }
+
   }
-
-
-  // grand master is a special case, always pinned to page 1 fader 30
+// grand master is a special case, always pinned to page 1 fader 30
   {
     uint8_t val = Surface->playback1.faders[8];
     if (val != omaster){  // fader has changed
 
 #if defined (MA_MSC_UDP)
       eth0_stats_tx += maMSC.Send_Fader_Value(1,30,val);   
+      eth0_stats_tx += maMSC.Send_Fader_Value(0,510,val); // according to spec, this should be grand master
 #endif
-
       omaster = val;
     }
+
+
+
+
   }
 
 
@@ -236,14 +246,14 @@ if (eth0_up){
 
 
 #if defined (CONFIG_EVENT_408)
-    if (strcmp(packetBuffer, "JCBL") == 0)
+    if (strcmp(packetBuffer[0], "JCBL") == 0)
     {
       // legit LED packet
 
       //Serial.println("Contents:");
       //Serial.println(packetBuffer);
     }
-    else if (strcmp(packetBuffer, "JCBD") == 0)
+    else if (strcmp(packetBuffer[0], "JCBD") == 0)
     {
       // legit LCD packet - payload is char card,x,y,length,string+NULL
 
@@ -482,16 +492,21 @@ void loop()
   // update surface,  send whole state if there is a change
   if (Surface->update())
   {
-
-
-
-
-
     sendSurfaceState(); // has something on the surface changed? send the surface state...
-    hostUpdate(); // send changes
+
+#if defined(MA_MSC_UDP)
+  // implementation specific
+  MA_Update(); //send changes, read incoming
+#endif 
+
   }
   
   hostSetSurfaceState();// process incomming host commands (if any)
+
+#if defined(MA_MSC_UDP)
+  // process incoming MSC
+  maMSC.update();
+#endif
 
 
   // testing keypad input

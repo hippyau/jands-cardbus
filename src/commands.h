@@ -263,35 +263,35 @@ void cmd_lcd_menu_label(int arg_cnt, char **args) {
   uint8_t X = 0, Y = 0;
   lcdModule * lcd;
 
-  if (nLCD >= 0 & nLCD <= 7) {
+  if ((nLCD >= 0) & (nLCD <= 7)) {
     lcd = &Surface->menu1.lcd[0];
     X = (nLCD * 5);
     Y = 0;
-  } else if (nLCD >= 8 & nLCD <= 15) {
+  } else if ((nLCD >= 8) & (nLCD <= 15)) {
     lcd = &Surface->menu1.lcd[0];
     X = ((nLCD-8) * 5);
     Y = 1;
-  } else if (nLCD >= 16 & nLCD <= 23) {
+  } else if ((nLCD >= 16) & (nLCD <= 23)) {
     lcd = &Surface->menu1.lcd[1];
     X = ((nLCD-16) * 5);
     Y = 0;
-  } else if (nLCD >= 24 & nLCD <= 31) {
+  } else if ((nLCD >= 24) & (nLCD <= 31)) {
     lcd = &Surface->menu1.lcd[1];
     X = ((nLCD-24) * 5);
     Y = 1;
-  } else if (nLCD >= 32 & nLCD <= 39) {
+  } else if ((nLCD >= 32) & (nLCD <= 39)) {
     lcd = &Surface->menu2.lcd[0];
     X = ((nLCD-32) * 5);
     Y = 0;
-  } else if (nLCD >= 40 & nLCD <= 47) {
+  } else if ((nLCD >= 40) & (nLCD <= 47)) {
     lcd = &Surface->menu2.lcd[0];
     X = ((nLCD-40) * 5);
     Y = 1;
-  } else if (nLCD >= 48 & nLCD <= 55) {
+  } else if ((nLCD >= 48) & (nLCD <= 55)) {
     lcd = &Surface->menu2.lcd[1];
     X = ((nLCD-48) * 5);
     Y = 0;
-  }  else if (nLCD >= 56 & nLCD <= 63) {
+  }  else if ((nLCD >= 56) & (nLCD <= 63)) {
     lcd = &Surface->menu2.lcd[1];
     X = ((nLCD-56) * 5);
     Y = 1;    
@@ -299,19 +299,20 @@ void cmd_lcd_menu_label(int arg_cnt, char **args) {
     s->println("menu_label: invalid label number.");
     return;
   }
-  
+
+  lcd->setCursor(X,Y);
+  lcd->print("     "); // clear old label
+
+  if (arg_cnt > 1){
 #if defined (TESTING)
-  Serial.printf("X: %d Y: %d S: '%.5s'", X, Y, args[2]);
+   Serial.printf("X: %d Y: %d S: '%.5s'", X, Y, args[2]);
 #endif
-  lcd->setCursor(X,Y);
-  lcd->print("     "); // clear old one
-  lcd->setCursor(X,Y);
-  lcd->printf("%.5s", args[2]); // print 5 chars max
-
+   if (strlen(args[2]) != 0){
+    lcd->setCursor(X,Y);
+    lcd->printf("%.5s", args[2]); // print 5 chars max
+   }
+  }
 }
-
-
-
 
 
 
