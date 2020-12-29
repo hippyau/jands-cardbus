@@ -17,6 +17,7 @@
 #define LCD_CLEARDISPLAY 0x01
 #define LCD_RETURNHOME 0x02
 #define LCD_ENTRYMODESET 0x04
+#define LCD_DISPLAYSHIFTOFF 0x06
 #define LCD_DISPLAYCONTROL 0x08
 #define LCD_CURSORSHIFT 0x10
 #define LCD_FUNCTIONSET 0x20
@@ -99,37 +100,47 @@ private:
 
 // initialize LCD at given bus address and turn it on
 // this is a slow process... just over 10ms
-void inline lcdModule::init(uint8_t address)
+void lcdModule::init(uint8_t address)
 {
   lcd_addr = address;
 
   selectAddr(lcd_addr); 
-  writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE );
+  writeData(LCD_FUNCTIONSET | LCD_8BITMODE | LCD_2LINE );  
   delay(5);
+  writeData(LCD_DISPLAYSHIFTOFF); 
+  delay(1);
   writeData(LCD_CLEARDISPLAY);
   delay(2);
   writeData(LCD_RETURNHOME);
-  delay(2);
-  writeData(0x0F); // display on, cursor on, blinking on
+  delay(3);
+  writeData(0x0C); // display on, no cursor .. used 0x0F for cursor on, blinking on
+
+#if defined (CONFIG_EVENT_408)  
   setContrast(contrast);
+#endif  
+
+#if defined (TESTING)
+  Serial.printf(" LCD @ 0x%02x\n\r",lcd_addr);
+#endif
+
 }
 
 // write a cmd byte to the LCD
-void inline lcdModule::write_cmd(uint8_t lcd_command)
+void lcdModule::write_cmd(uint8_t lcd_command)
 {
   selectAddr(lcd_addr);
   writeDataDelay(lcd_command);
 }
 
 // write a data byte to the LCD
-void inline lcdModule::write_data(uint8_t lcd_data)
-{
+void lcdModule::write_data(uint8_t lcd_data)
+{  
   selectAddr(lcd_addr + 1);
   writeDataDelay(lcd_data);
 }
 
 // for printXX commands
-inline size_t lcdModule::write(uint8_t value)
+size_t lcdModule::write(uint8_t value)
 {
   write_data(value);
   return 1; // assume sucess
@@ -139,29 +150,30 @@ inline size_t lcdModule::write(uint8_t value)
 //       because this is not correct for other series cards,
 //       might create side effects...
 // sets the DAC to control LCD contrast.
-void inline lcdModule::setContrast(uint8_t value)
+void lcdModule::setContrast(uint8_t value)
 {
   selectAddr(lcd_addr + 2);
   writeData(value);
 }
 
 // clear the display
-void inline lcdModule::clear()
+void lcdModule::clear()
 {
   write_cmd(LCD_CLEARDISPLAY);
-  delay(2);  
+  delay(3);  
 }  
 
 // locate the cursor
-void inline lcdModule::setCursor(uint8_t col, uint8_t row)
+void lcdModule::setCursor(uint8_t col, uint8_t row)
 {
   if (row < LCD_ROWS)
-    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));
+    write_cmd(LCD_SETDDRAMADDR | (col + row_offset[row]));    
 }  
+
 
 // Allows us to fill the first 8 CGRAM locations
 // with custom characters
-void inline lcdModule::createChar(uint8_t location, uint8_t charmap[]) {
+void lcdModule::createChar(uint8_t location, uint8_t charmap[]) {
   location &= 0x7; // we only have 8 locations 0-7
   write_cmd(LCD_SETCGRAMADDR | (location << 3));
   for (int i=0; i<8; i++) {

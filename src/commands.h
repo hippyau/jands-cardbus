@@ -244,9 +244,8 @@ void cmd_lcd(int arg_cnt, char **args) {
 }
 
 
-// set a message on a LCD
+// set a menu button label... 
 void cmd_lcd_menu_label(int arg_cnt, char **args) {
-  if (Surface->halt == false) cmd_warn_bus_running(); 
   Stream *s = cmdGetStream();
 
   if (arg_cnt == 1){
@@ -301,6 +300,9 @@ void cmd_lcd_menu_label(int arg_cnt, char **args) {
     return;
   }
   
+#if defined (TESTING)
+  Serial.printf("X: %d Y: %d S: '%.5s'", X, Y, args[2]);
+#endif
   lcd->setCursor(X,Y);
   lcd->print("     "); // clear old one
   lcd->setCursor(X,Y);

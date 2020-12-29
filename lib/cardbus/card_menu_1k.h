@@ -32,9 +32,9 @@ public:
 
 private:
 
-  uint8_t card_addr;  // 0, 1, 2
-  uint8_t lcd1_addr;
-  uint8_t lcd2_addr; 
+  uint8_t card_addr = 0;  // 0, 1, 2
+  uint8_t lcd1_addr = 0;
+  uint8_t lcd2_addr = 0; 
   uint8_t contrast_addr;  // IC8 - latch 2 x 4bit resistor-ladder, 2 x low res DAC   
   uint8_t obuttons[5]; // for change comparison...
   uint8_t ocontrast[2]; 
@@ -70,12 +70,10 @@ bool menuCard::init(uint8_t nAddr) {
     setContrast(MENU_1K_DEFAULT_CONSTRAST); // set all displays to default constrast
 
     lcd[0].init(lcd1_addr);    
+    lcd[1].init(lcd2_addr);    
+
 #if defined(MENU_1K_CARD_TESTING)
     lcd[0].print("Jands Menu Card - LCD 1 - Init OK ");      
-#endif
-
-    lcd[1].init(lcd2_addr);    
-#if defined(MENU_1K_CARD_TESTING)
     lcd[1].print("Jands Menu Card - LCD 2 - Init OK ");
 #endif
 
